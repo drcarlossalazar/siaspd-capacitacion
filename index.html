@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIASPD / MAED 2026 · Entrenador Interactivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0F2A4A;
+  --navy-2:#173A63;
+  --navy-3:#20507F;
+  --paper:#EEF2F1;
+  --card:#FFFFFF;
+  --ink:#12202E;
+  --ink-soft:#4C5C68;
+  --line:#D9E0DD;
+  --lane:#C7362F;
+  --gold:#C79A3B;
+  --verde:#2F8F5B;
+  --verde-bg:#E4F3EB;
+  --amarillo:#C68B1F;
+  --amarillo-bg:#FCF1DA;
+  --rojo:#C43B3B;
+  --rojo-bg:#FBE7E5;
+  --azul:#20507F;
+  --azul-bg:#E4EDF5;
+  --radius:10px;
+  --font-display:'Oswald',"Arial Narrow",sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,sans-serif;
+  --font-mono:'Roboto Mono',"Consolas",monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.55;
+}
+::selection{background:var(--gold);color:#1a1200;}
+
+/* ---------- Lane stripe signature element ---------- */
+.lane-divider{
+  height:10px;
+  width:100%;
+  background:repeating-linear-gradient(
+    -45deg,
+    var(--lane) 0px, var(--lane) 22px,
+    #ffffff 22px, #ffffff 30px
+  );
+  opacity:.85;
+}
+.lane-divider.thin{height:5px;}
+
+/* ---------- Top bar / track nav ---------- */
+header.topbar{
+  position:sticky; top:0; z-index:50;
+  background:var(--navy);
+  color:#fff;
+  box-shadow:0 2px 14px rgba(0,0,0,.18);
+}
+.topbar-inner{
+  max-width:1240px;margin:0 auto;
+  padding:14px 24px 0 24px;
+}
+.brand-row{
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;
+}
+.brand{
+  font-family:var(--font-display);
+  font-weight:600;font-size:20px;letter-spacing:.02em;
+  display:flex;align-items:baseline;gap:10px;
+}
+.brand small{
+  font-family:var(--font-body);font-weight:500;font-size:12px;
+  color:#9FB3C8;letter-spacing:.06em;text-transform:uppercase;
+}
+.brand-tag{
+  font-family:var(--font-body);font-size:12px;color:#9FB3C8;
+}
+
+/* track = horizontal scroller of 10 stations */
+.track{
+  display:flex;gap:6px;overflow-x:auto;
+  padding:14px 0 12px 0;
+  scrollbar-width:thin;
+}
+.track::-webkit-scrollbar{height:5px;}
+.track::-webkit-scrollbar-thumb{background:#2C4D71;border-radius:4px;}
+.station{
+  flex:0 0 auto;
+  display:flex;align-items:center;gap:8px;
+  padding:7px 12px 7px 8px;
+  border-radius:20px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  cursor:pointer;
+  text-decoration:none;
+  color:#CBD8E6;
+  transition:background .15s, color .15s, border-color .15s;
+  white-space:nowrap;
+}
+.station:hover{background:rgba(255,255,255,.14);color:#fff;}
+.station.active{
+  background:var(--lane);border-color:var(--lane);color:#fff;
+}
+.station .num{
+  font-family:var(--font-mono);font-weight:700;font-size:12px;
+  width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.14);
+}
+.station.active .num{background:rgba(255,255,255,.3);}
+.station .label{font-size:12.5px;font-weight:500;}
+.station.done .num{background:var(--verde);}
+
+/* ---------- layout shell ---------- */
+main{max-width:1240px;margin:0 auto;padding:0 24px 90px 24px;overflow-x:hidden;}
+section.method{scroll-margin-top:118px;padding-top:46px;min-width:0;}
+
+/* ---------- Hero / overview ---------- */
+.hero{
+  padding:54px 0 30px 0;
+}
+.eyebrow{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;
+  color:var(--lane);text-transform:uppercase;font-weight:700;
+  margin:0 0 10px 0;
+}
+h1.hero-title{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(30px,4.2vw,52px);
+  line-height:1.05;
+  margin:0 0 16px 0;
+  color:var(--navy);
+}
+p.hero-sub{
+  max-width:680px;font-size:16.5px;color:var(--ink-soft);margin:0 0 28px 0;
+}
+.hero-grid{
+  display:grid;grid-template-columns:1.15fr .85fr;gap:28px;
+  align-items:stretch;min-width:0;
+}
+.hero-grid > *{min-width:0;}
+@media (max-width:920px){.hero-grid{grid-template-columns:1fr;}}
+
+.scoreboard{
+  background:var(--navy);
+  border-radius:var(--radius);
+  padding:20px 22px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:16px;
+  align-content:center;
+}
+.score-item{text-align:center;}
+.score-num{
+  font-family:var(--font-mono);font-weight:700;
+  font-size:30px;color:#fff;letter-spacing:.02em;
+}
+.score-num.gold{color:var(--gold);}
+.score-num.lane{color:#FF8A80;}
+.score-label{
+  font-size:10.5px;color:#9FB3C8;text-transform:uppercase;
+  letter-spacing:.07em;margin-top:4px;
+}
+
+/* ---------- Track diagram (SVG stations) ---------- */
+.diagram-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:8px 8px 4px 8px;
+}
+.diagram-card svg{width:100%;height:auto;display:block;}
+.node{cursor:pointer;}
+.node circle{transition:r .15s, fill .15s;}
+.node:hover circle{fill:var(--lane);}
+.node text{font-family:var(--font-mono);font-weight:700;pointer-events:none;}
+.node .nlabel{font-family:var(--font-body);font-weight:600;pointer-events:none;}
+
+/* ---------- Method section header ---------- */
+.method-head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;margin-bottom:6px;
+}
+.method-kicker{
+  font-family:var(--font-mono);font-size:12px;color:var(--lane);
+  font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+}
+h2.method-title{
+  font-family:var(--font-display);font-size:clamp(24px,3vw,34px);
+  font-weight:600;color:var(--navy);margin:2px 0 0 0;
+}
+.method-goal{
+  max-width:720px;color:var(--ink-soft);font-size:15px;margin:10px 0 26px 0;
+}
+
+/* ---------- two column content/calculator ---------- */
+.method-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;
+  margin-bottom:36px;min-width:0;
+}
+.method-grid > *{min-width:0;}
+@media (max-width:940px){.method-grid{grid-template-columns:1fr;}}
+
+.panel{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px 24px;
+}
+.panel h3{
+  font-family:var(--font-display);font-weight:600;font-size:16px;
+  color:var(--navy);margin:0 0 10px 0;letter-spacing:.01em;
+}
+.panel h3.calc-h{
+  display:flex;align-items:center;gap:8px;
+}
+.pill{
+  display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:700;
+  background:var(--azul-bg);color:var(--azul);padding:2px 8px;border-radius:20px;
+  letter-spacing:.05em;text-transform:uppercase;
+}
+.panel p{font-size:14px;color:var(--ink-soft);margin:0 0 12px 0;}
+.panel ol, .panel ul{margin:0 0 14px 0;padding-left:20px;font-size:14px;color:var(--ink);}
+.panel li{margin-bottom:6px;}
+.example-box{
+  background:var(--paper);border-left:3px solid var(--gold);
+  padding:12px 14px;border-radius:6px;font-size:13.5px;color:var(--ink-soft);
+  margin-top:12px;
+}
+.example-box b{color:var(--navy);}
+
+/* ---------- form controls ---------- */
+label.field{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin:12px 0 5px 0;}
+input[type=number], input[type=text], select{
+  width:100%;font-family:var(--font-body);font-size:14px;
+  padding:9px 10px;border:1px solid var(--line);border-radius:6px;
+  background:#fff;color:var(--ink);
+}
+input[type=range]{width:100%;accent-color:var(--lane);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+button.btn{
+  font-family:var(--font-body);font-weight:600;font-size:13.5px;
+  background:var(--navy);color:#fff;border:none;border-radius:6px;
+  padding:9px 16px;cursor:pointer;transition:background .15s;
+}
+button.btn:hover{background:var(--navy-3);}
+button.btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--line);}
+button.btn.small{padding:5px 10px;font-size:12px;}
+button.btn.danger{background:var(--rojo);}
+
+/* ---------- result readout (digital scoreboard) ---------- */
+.readout{
+  background:var(--navy);border-radius:8px;padding:16px 18px;margin-top:16px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+.readout .rlabel{font-size:11px;color:#9FB3C8;text-transform:uppercase;letter-spacing:.06em;}
+.readout .rvalue{font-family:var(--font-mono);font-weight:700;font-size:26px;color:#fff;}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);
+  font-weight:700;font-size:12px;padding:5px 12px;border-radius:20px;text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.badge.verde{background:var(--verde-bg);color:var(--verde);}
+.badge.amarillo{background:var(--amarillo-bg);color:var(--amarillo);}
+.badge.rojo{background:var(--rojo-bg);color:var(--rojo);}
+.badge.azul{background:var(--azul-bg);color:var(--azul);}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:currentColor;}
+
+.conclusion{
+  margin-top:14px;font-size:13.5px;color:var(--navy);background:var(--azul-bg);
+  padding:12px 14px;border-radius:6px;line-height:1.5;
+}
+.conclusion b{color:var(--navy);}
+
+/* ---------- table ---------- */
+table.datatable{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;table-layout:fixed;}
+table.datatable th{
+  text-align:left;font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.04em;color:var(--ink-soft);border-bottom:2px solid var(--line);
+  padding:6px 8px;overflow-wrap:break-word;
+}
+table.datatable td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle;overflow-wrap:break-word;word-break:break-word;}
+table.datatable input{padding:5px 7px;font-size:12.5px;width:100%;min-width:0;}
+table.datatable tr.priority td{background:var(--rojo-bg);}
+
+/* ---------- funnel bars ---------- */
+.funnel-row{display:flex;align-items:center;gap:10px;margin:6px 0;}
+.funnel-label{width:150px;font-size:12px;color:var(--ink-soft);flex:0 0 auto;}
+.funnel-bar-wrap{flex:1;background:var(--paper);border-radius:4px;overflow:hidden;height:22px;}
+.funnel-bar{height:100%;background:var(--azul);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width .3s;}
+.funnel-bar.bottleneck{background:var(--lane);}
+.funnel-bar span{font-family:var(--font-mono);font-size:11px;color:#fff;font-weight:700;}
+
+/* ---------- pareto chart ---------- */
+.chart-wrap{margin-top:14px;}
+.pchart{display:flex;align-items:flex-end;gap:10px;height:180px;border-bottom:1px solid var(--line);padding-bottom:2px;position:relative;}
+.pbar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+.pbar{width:70%;background:var(--azul);border-radius:3px 3px 0 0;position:relative;transition:height .3s;}
+.pbar.priority{background:var(--lane);}
+.pbar-val{font-family:var(--font-mono);font-size:10px;color:var(--ink-soft);margin-bottom:2px;}
+.pbar-name{font-size:9.5px;color:var(--ink-soft);text-align:center;margin-top:6px;max-width:80px;line-height:1.2;}
+.cum-line{position:absolute;left:0;right:0;top:0;height:100%;pointer-events:none;}
+
+/* ---------- fishbone ---------- */
+.fishbone-wrap{overflow-x:auto;}
+.fishbone-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;}
+.cat-card{
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper);
+  cursor:pointer;transition:border-color .15s;
+}
+.cat-card:hover{border-color:var(--lane);}
+.cat-card .cat-name{font-weight:700;font-size:12.5px;color:var(--navy);}
+.cat-card .cat-count{
+  font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);margin-top:3px;
+}
+.cause-input-area{margin-top:12px;}
+.cause-tag{
+  display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);
+  border-radius:20px;padding:4px 10px 4px 12px;font-size:12px;margin:3px 4px 3px 0;
+}
+.cause-tag button{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:13px;line-height:1;}
+
+/* ---------- 5 whys ---------- */
+.why-chain{margin-top:14px;}
+.why-step{
+  display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;
+  opacity:0;transform:translateY(6px);transition:opacity .25s, transform .25s;
+}
+.why-step.show{opacity:1;transform:translateY(0);}
+.why-num{
+  flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;
+  font-family:var(--font-mono);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;
+}
+.why-body{flex:1;}
+.root-box{
+  margin-top:16px;padding:14px 16px;background:var(--navy);border-radius:8px;color:#fff;
+}
+.root-box .rlabel{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;font-weight:700;}
+.root-box p{color:#fff;margin:6px 0 0 0;font-size:14px;}
+
+/* ---------- decision gauge ---------- */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;margin-top:10px;}
+.gauge-result{
+  margin-top:10px;font-family:var(--font-display);font-weight:600;font-size:20px;color:var(--navy);
+  text-align:center;
+}
+.gauge-sub{font-size:12px;color:var(--ink-soft);text-align:center;margin-top:2px;}
+
+/* ---------- footer ---------- */
+footer{
+  background:var(--navy);color:#9FB3C8;padding:34px 24px;margin-top:60px;font-size:12.5px;
+}
+footer .footer-inner{max-width:1240px;margin:0 auto;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+footer b{color:#fff;}
+
+/* ---------- utility ---------- */
+.muted{color:var(--ink-soft);}
+.small{font-size:12px;}
+.mb0{margin-bottom:0;}
+.flex-between{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+@media (max-width:640px){
+  .row2,.row3{grid-template-columns:1fr;}
+  .fishbone-cats{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand-row">
+      <div class="brand">SIASPD <small>/ MAED 2026</small></div>
+      <div class="brand-tag">INDE Nuevo León · Dirección de Alto Rendimiento · Entrenador interactivo para el equipo técnico</div>
+    </div>
+    <nav class="track" id="track">
+      <a class="station" href="#overview" data-target="overview"><span class="num">•</span><span class="label">Mapa</span></a>
+      <a class="station" href="#m1" data-target="m1"><span class="num">1</span><span class="label">Desagregación</span></a>
+      <a class="station" href="#m2" data-target="m2"><span class="num">2</span><span class="label">Cohortes</span></a>
+      <a class="station" href="#m3" data-target="m3"><span class="num">3</span><span class="label">Trayectorias</span></a>
+      <a class="station" href="#m4" data-target="m4"><span class="num">4</span><span class="label">Ishikawa</span></a>
+      <a class="station" href="#m5" data-target="m5"><span class="num">5</span><span class="label">Pareto</span></a>
+      <a class="station" href="#m6" data-target="m6"><span class="num">6</span><span class="label">AMFE</span></a>
+      <a class="station" href="#m7" data-target="m7"><span class="num">7</span><span class="label">5 Porqués</span></a>
+      <a class="station" href="#m8" data-target="m8"><span class="num">8</span><span class="label">Decisión</span></a>
+      <a class="station" href="#m9" data-target="m9"><span class="num">9</span><span class="label">Plan de Acción</span></a>
+      <a class="station" href="#m10" data-target="m10"><span class="num">10</span><span class="label">CAPA</span></a>
+    </nav>
+  </div>
+  <div class="lane-divider thin"></div>
+</header>
+
+<main>
+<section id="overview" class="method">
+  <div class="hero">
+    <p class="eyebrow">Sistema Integral de Análisis y Solución de Problemas Deportivos</p>
+    <h1 class="hero-title">Diez métodos, una sola cadena hacia la medalla.</h1>
+    <p class="hero-sub">Esta guía convierte el Manual SIASPD / MAED 2026 en un recorrido interactivo. Explore el mapa completo, entre a cada método, lea el fundamento y el ejemplo real, y practique con las calculadoras en vivo antes de aplicarlas con datos reales de sus atletas.</p>
+
+    <div class="hero-grid">
+      <div class="diagram-card">
+        <svg id="pipelineSvg" viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="scoreboard">
+        <div class="score-item"><div class="score-num lane">9%</div><div class="score-label">Conversión base 2025</div></div>
+        <div class="score-item"><div class="score-num gold">28%</div><div class="score-label">Meta ON 2027</div></div>
+        <div class="score-item"><div class="score-num">10</div><div class="score-label">Métodos encadenados</div></div>
+        <div class="score-item"><div class="score-num">91%</div><div class="score-label">Pérdida semifinal→final (natación)</div></div>
+        <div class="score-item"><div class="score-num">378</div><div class="score-label">IPR más alto detectado (taekwondo)</div></div>
+        <div class="score-item"><div class="score-num">Jalisco</div><div class="score-label">Referente externo</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="lane-divider"></div>
+<section id="m1" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 1 de 10</div>
+      <h2 class="method-title">Desagregación — ubicar el problema</h2>
+    </div>
+    <span class="pill">Diagnóstico</span>
+  </div>
+  <p class="method-goal">Localiza el segmento exacto —deporte, rama, categoría, prueba, fase competitiva— donde se concentra el problema real, en vez de tratar el sistema completo como si fuera uniforme.</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>Sin desagregar, los recursos se dispersan sobre todo el sistema en lugar de concentrarse donde realmente se pierde la medalla. La desagregación rompe la ilusión de un problema uniforme.</p>
+      <h3>Pasos</h3>
+      <ol>
+        <li>Definir la población: deporte, rama, categoría, prueba, modalidad.</li>
+        <li>Elegir el evento/competencia de referencia (ej. Olimpiada Nacional CONADE).</li>
+        <li>Ubicar la fase competitiva donde ocurre el mayor quiebre.</li>
+        <li>Registrar clasificados, finalistas y medallistas del último ciclo.</li>
+        <li>Calcular la tasa de conversión finalista→medallista y compararla contra la meta institucional.</li>
+      </ol>
+      <div class="example-box">
+        <b>Caso real (natación, INDE Nuevo León):</b> la tasa de clasificación es razonable, pero la caída crítica ocurre específicamente en el tramo semifinal→final, con <b>91% de pérdida</b> en ese tramo. Sin desagregación, esta localización es invisible.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Calculadora <span class="pill">en vivo</span></h3>
+      <p>Capture los datos del último ciclo de su deporte y observe el semáforo automático.</p>
+      <div class="row3">
+        <div><label class="field">Clasificados</label><input type="number" id="m1_clas" value="11" min="0"></div>
+        <div><label class="field">Finalistas</label><input type="number" id="m1_fin" value="11" min="0"></div>
+        <div><label class="field">Medallistas</label><input type="number" id="m1_med" value="1" min="0"></div>
+      </div>
+      <label class="field">Meta institucional de conversión F→M</label>
+      <input type="number" id="m1_meta" value="28" min="1" max="100"> <span class="small muted">%</span>
+
+      <div class="readout">
+        <div>
+          <div class="rlabel">Tasa Finalista → Medallista</div>
+          <div class="rvalue" id="m1_tasa">—</div>
+        </div>
+        <div id="m1_badge"></div>
+      </div>
+      <div class="conclusion" id="m1_concl"></div>
+    </div>
+  </div>
+</section>
+<section id="m2" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 2 de 10</div>
+      <h2 class="method-title">Diagnóstico Longitudinal — ¿es sistémico?</h2>
+    </div>
+    <span class="pill">Diagnóstico</span>
+  </div>
+  <p class="method-goal">Determina si el problema detectado en el Método 1 se repite en el tiempo (sistémico) o es un caso aislado de una generación (generacional).</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>El criterio de <b>tres cohortes consecutivas</b> evita confundir un problema estructural con la mala suerte de una sola generación de atletas. Si el patrón se repite en tres o más cohortes, la respuesta correcta es un rediseño (Kaikaku), no paciencia.</p>
+      <h3>Pasos</h3>
+      <ol>
+        <li>Identificar 3 cohortes (generaciones) consecutivas.</li>
+        <li>Registrar su tasa de conversión F→M en cada ciclo disponible.</li>
+        <li>Marcar qué cohortes están por debajo del umbral (15%).</li>
+        <li>Si ≥3 cohortes están bajo el umbral → sistémico.</li>
+      </ol>
+      <div class="example-box">
+        <b>Implicación:</b> un problema <i>sistémico</i> requiere intervención estructural (Kaikaku) y completar toda la cadena SIASPD. Un problema <i>generacional</i> admite Kaizen exploratorio y más seguimiento antes de rediseñar.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Calculadora <span class="pill">en vivo</span></h3>
+      <p>Ingrese el % de conversión F→M de 3 cohortes en sus últimos ciclos disponibles.</p>
+      <table class="datatable" id="m2_table">
+        <thead><tr><th>Cohorte</th><th>Ciclo 1 %</th><th>Ciclo 2 %</th><th>Ciclo 3 %</th></tr></thead>
+        <tbody>
+          <tr><td>2007–2008</td><td><input type="number" class="m2c" value="9"></td><td><input type="number" class="m2c" value="8"></td><td><input type="number" class="m2c" value="10"></td></tr>
+          <tr><td>2009–2010</td><td><input type="number" class="m2c" value="7"></td><td><input type="number" class="m2c" value="9"></td><td><input type="number" class="m2c" value="6"></td></tr>
+          <tr><td>2011–2012</td><td><input type="number" class="m2c" value="11"></td><td><input type="number" class="m2c" value="12"></td><td><input type="number" class="m2c" value="10"></td></tr>
+        </tbody>
+      </table>
+      <div class="readout">
+        <div>
+          <div class="rlabel">Cohortes bajo umbral (15%)</div>
+          <div class="rvalue" id="m2_count">—</div>
+        </div>
+        <div id="m2_badge"></div>
+      </div>
+      <div class="conclusion" id="m2_concl"></div>
+    </div>
+  </div>
+</section>
+
+<section id="m3" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 3 de 10</div>
+      <h2 class="method-title">Análisis de Trayectorias — ¿dónde se rompe el proceso?</h2>
+    </div>
+    <span class="pill">Diagnóstico</span>
+  </div>
+  <p class="method-goal">Construye el embudo de conversión hacia la medalla para localizar el cuello de botella exacto.</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>Sin el embudo, la pérdida de atletas parece difusa. Con él, se ve exactamente en qué etapa se concentra la fuga —y ahí, no en todo el sistema, debe concentrarse la intervención.</p>
+      <h3>Pasos</h3>
+      <ol>
+        <li>Listar las etapas competitivas en orden (clasificación → medalla).</li>
+        <li>Registrar cuántos atletas llegan a cada etapa.</li>
+        <li>Calcular la retención etapa a etapa.</li>
+        <li>Identificar la etapa con mayor caída: ese es el cuello de botella.</li>
+      </ol>
+      <div class="example-box">
+        <b>Regla práctica:</b> concentre primero los recursos en el tramo de mayor pérdida. Intervenir etapas ya sólidas antes de resolver el cuello de botella es la forma más común de desperdiciar presupuesto.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Calculadora <span class="pill">en vivo</span></h3>
+      <p>Ingrese el número de atletas que llegan a cada etapa.</p>
+      <div id="m3_inputs"></div>
+      <div id="m3_funnel" class="chart-wrap"></div>
+      <div class="conclusion" id="m3_concl"></div>
+    </div>
+  </div>
+</section>
+<section id="m4" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 4 de 10</div>
+      <h2 class="method-title">Ishikawa — entender por qué</h2>
+    </div>
+    <span class="pill">Análisis causal</span>
+  </div>
+  <p class="method-goal">Organiza las causas reales —no los síntomas— en las 8 categorías del diagrama Ishikawa deportivo.</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>La convergencia multifactorial es la norma: rara vez hay una sola causa. Las 8 categorías obligan a revisar sistemáticamente entrenamiento, entrenador, desarrollo biológico, experiencia competitiva, entorno, evaluación del talento, salud/recuperación y psicología.</p>
+      <div class="example-box">
+        <b>Caso real (taekwondo):</b> cero conversiones a semifinal en tres ciclos. Las causas validadas: <b>descontrol emocional</b> (categoría Psicología) y <b>lectura táctica deficiente</b> (categoría Experiencia Competitiva).
+      </div>
+      <p class="small muted" style="margin-top:14px;">Haga clic en una categoría para agregar causas. El conteo alimentará la calculadora de Pareto del Método 5.</p>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Diagrama interactivo <span class="pill">en vivo</span></h3>
+      <div class="fishbone-cats" id="fishboneCats"></div>
+      <div class="cause-input-area" id="causeInputArea" style="display:none;">
+        <label class="field" id="causeInputLabel">Nueva causa</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="causeInputText" placeholder="Describa la causa observada...">
+          <button class="btn small" id="addCauseBtn">Agregar</button>
+        </div>
+        <div class="tag-list" id="causeTagList"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="m5" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 5 de 10</div>
+      <h2 class="method-title">Pareto — priorizar qué atacar primero</h2>
+    </div>
+    <span class="pill">Priorización</span>
+  </div>
+  <p class="method-goal">Enfoca el 80% de los recursos en el 20–30% de causas que generan el 70–80% del impacto.</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>Sin priorizar, los recursos se dispersan sobre causas de bajo impacto real. El Pareto obliga a ordenar las causas de mayor a menor frecuencia/impacto y trazar la línea del 80% acumulado.</p>
+      <h3>Pasos</h3>
+      <ol>
+        <li>Listar las causas (idealmente traídas del Método 4).</li>
+        <li>Asignar una frecuencia/impacto de 1 a 10 a cada una.</li>
+        <li>Calcular % del total y % acumulado.</li>
+        <li>Marcar como prioritarias las causas hasta llegar a 80% acumulado.</li>
+      </ol>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Calculadora <span class="pill">en vivo</span></h3>
+      <p>Agregue causas y su frecuencia/impacto (1–10). La tabla y la gráfica se ordenan y calculan solas.</p>
+      <table class="datatable" id="m5_table">
+        <thead><tr><th>Causa</th><th>Frecuencia</th><th>%</th><th>% Acum.</th><th></th></tr></thead>
+        <tbody id="m5_tbody"></tbody>
+      </table>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <input type="text" id="m5_newcausa" placeholder="Nueva causa...">
+        <input type="number" id="m5_newfreq" placeholder="Frec." style="max-width:80px;" min="1" max="10">
+        <button class="btn small" id="m5_add">Agregar</button>
+      </div>
+      <div class="chart-wrap"><div class="pchart" id="m5_chart"></div></div>
+      <div class="conclusion" id="m5_concl"></div>
+    </div>
+  </div>
+</section>
+<section id="m6" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 6 de 10</div>
+      <h2 class="method-title">AMFE — prevenir que el problema falle de nuevo</h2>
+    </div>
+    <span class="pill">Gestión de riesgo</span>
+  </div>
+  <p class="method-goal">Anticipa los modos de fallo con 6–12 meses de antelación mediante el Índice de Prioridad de Riesgo: IPR = Severidad × Ocurrencia × Detección.</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>El AMFE prioriza no solo por frecuencia (Pareto) sino por <b>riesgo real de perder la medalla</b>. A mayor severidad, mayor ocurrencia y menor capacidad de detección, mayor IPR.</p>
+      <div class="example-box">
+        <b>Caso real (taekwondo):</b> descontrol emocional en semifinal → <b>IPR 378</b> (el más alto detectado). Lectura táctica deficiente → <b>IPR 288</b>. Ambos, clasificados como riesgo Muy Alto.
+      </div>
+      <table class="datatable" style="margin-top:14px;">
+        <thead><tr><th>IPR</th><th>Clasificación</th></tr></thead>
+        <tbody>
+          <tr><td>≥ 200</td><td><span class="badge rojo"><span class="dot"></span>Muy Alto</span></td></tr>
+          <tr><td>100–199</td><td><span class="badge amarillo"><span class="dot"></span>Alto</span></td></tr>
+          <tr><td>50–99</td><td><span class="badge amarillo"><span class="dot"></span>Medio</span></td></tr>
+          <tr><td>&lt; 50</td><td><span class="badge verde"><span class="dot"></span>Bajo</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Calculadora <span class="pill">en vivo</span></h3>
+      <p>Mueva los controles para Severidad, Ocurrencia y Detección (1–10 cada uno).</p>
+      <label class="field">Modo de falla</label>
+      <input type="text" id="m6_nombre" value="Descontrol emocional en semifinal">
+      <div class="row3">
+        <div><label class="field">Severidad <span id="m6_sv">9</span></label><input type="range" id="m6_s" min="1" max="10" value="9"></div>
+        <div><label class="field">Ocurrencia <span id="m6_ov">7</span></label><input type="range" id="m6_o" min="1" max="10" value="7"></div>
+        <div><label class="field">Detección <span id="m6_dv">6</span></label><input type="range" id="m6_d" min="1" max="10" value="6"></div>
+      </div>
+      <div class="readout">
+        <div><div class="rlabel">IPR = S × O × D</div><div class="rvalue" id="m6_ipr">—</div></div>
+        <div id="m6_badge"></div>
+      </div>
+      <div class="conclusion" id="m6_concl"></div>
+    </div>
+  </div>
+</section>
+
+<section id="m7" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 7 de 10</div>
+      <h2 class="method-title">5 Porqués — profundización causal</h2>
+    </div>
+    <span class="pill">Análisis causal</span>
+  </div>
+  <p class="method-goal">Convierte la causa prioritaria (de Pareto/AMFE) en una causa raíz operativa: una decisión concreta que la institución puede tomar.</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>Una causa general ("falta motivación") no es accionable; una causa raíz operativa sí lo es. Pregunte "¿por qué?" cinco veces sucesivas, usando cada respuesta como la siguiente pregunta.</p>
+      <div class="example-box">
+        <b>Tip de facilitación:</b> deténgase antes de la 5ª pregunta si ya llegó a algo que la institución puede decidir directamente (presupuesto, contratación, protocolo). Forzar las 5 preguntas sin necesidad diluye la causa raíz.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Asistente <span class="pill">en vivo</span></h3>
+      <label class="field">Causa de partida (de Pareto / AMFE)</label>
+      <input type="text" id="m7_start" value="Descontrol emocional bajo presión en semifinal">
+      <div class="why-chain" id="m7_chain"></div>
+      <button class="btn" id="m7_next" style="margin-top:10px;">Comenzar cadena de porqués</button>
+      <div class="root-box" id="m7_root" style="display:none;">
+        <div class="rlabel">Causa raíz operativa</div>
+        <p id="m7_rootText"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="m8" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 8 de 10</div>
+      <h2 class="method-title">Matrices de Decisión — decidir con evidencia</h2>
+    </div>
+    <span class="pill">Decisión</span>
+  </div>
+  <p class="method-goal">Selecciona el tipo correcto de intervención —Kaizen, Kaikaku o Kakushin— mediante una matriz multicriterio, evitando la sub- y la sobre-intervención.</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>Impacto y Viabilidad suman a favor de una intervención más profunda; Costo, Tiempo y Riesgo restan. El puntaje neto ubica la decisión en una de tres zonas.</p>
+      <table class="datatable">
+        <thead><tr><th>Puntaje neto</th><th>Recomendación</th></tr></thead>
+        <tbody>
+          <tr><td>&lt; 1.5</td><td><span class="badge verde"><span class="dot"></span>Kaizen</span> — mejora incremental</td></tr>
+          <tr><td>1.5 – 2.9</td><td><span class="badge amarillo"><span class="dot"></span>Kaikaku</span> — rediseño estructural</td></tr>
+          <tr><td>≥ 3.0</td><td><span class="badge azul"><span class="dot"></span>Kakushin</span> — innovación disruptiva</td></tr>
+        </tbody>
+      </table>
+      <div class="example-box">Los pesos por defecto reflejan la ponderación sugerida por el manual (Impacto 30%, Alcance 20%, Viabilidad 20%, Costo 15%, Tiempo 10%, Riesgo 5%), pero puede ajustarlos a su contexto.</div>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Calculadora <span class="pill">en vivo</span></h3>
+      <div id="m8_sliders"></div>
+      <div class="gauge-wrap">
+        <svg id="m8_gauge" viewBox="0 0 220 130" width="220" height="130"></svg>
+        <div class="gauge-result" id="m8_result">—</div>
+        <div class="gauge-sub" id="m8_score">Puntaje neto: —</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="m9" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 9 de 10</div>
+      <h2 class="method-title">Plan de Acción — ejecutar el cambio</h2>
+    </div>
+    <span class="pill">Ejecución</span>
+  </div>
+  <p class="method-goal">Traduce la decisión del Método 8 en actividades concretas, verificables y con responsable único.</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>Una actividad sin responsable único y fecha específica no es un plan de acción: es una intención. Cada actividad debe tener un indicador de éxito objetivo, no una aspiración.</p>
+      <h3>Regla de oro</h3>
+      <p>Diagnosticar primero, intervenir después. Un plan construido sin pasar por los Métodos 1–8 repite el error más costoso de la gestión deportiva: intervenciones correctas para el problema equivocado.</p>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Ejemplo de estructura <span class="pill">referencia</span></h3>
+      <table class="datatable">
+        <thead><tr><th>Actividad</th><th>Responsable</th><th>Indicador</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td>Rutina precompetitiva de regulación emocional</td><td>Psicólogo Dep.</td><td>≥12 práctica antes de fogueo</td><td><span class="badge amarillo"><span class="dot"></span>En proceso</span></td></tr>
+          <tr><td>Protocolo de pacing documentado</td><td>Entrenador Jefe</td><td>≥90% series con split</td><td><span class="badge rojo"><span class="dot"></span>Abierto</span></td></tr>
+          <tr><td>3 fogueos nacionales confirmados</td><td>Dirección Técnica</td><td>3 fogueos ejecutados</td><td><span class="badge rojo"><span class="dot"></span>Abierto</span></td></tr>
+        </tbody>
+      </table>
+      <p class="small muted" style="margin-top:10px;">El Excel del sistema (SIASPD_Sistema_Interactivo.xlsx) trae esta tabla ya editable con semáforo automático, costo total y % de avance.</p>
+    </div>
+  </div>
+</section>
+
+<section id="m10" class="method">
+  <div class="method-head">
+    <div>
+      <div class="method-kicker">Método 10 de 10</div>
+      <h2 class="method-title">CAPA — documentar la solución</h2>
+    </div>
+    <span class="pill">Control y aprendizaje</span>
+  </div>
+  <p class="method-goal">Garantiza que cada acción se ejecute, se verifique con indicadores objetivos y se documente como aprendizaje institucional acumulado.</p>
+
+  <div class="method-grid">
+    <div class="panel">
+      <h3>Fundamento</h3>
+      <p>Entre 40% y 60% de las decisiones técnicas acordadas en reuniones de staff deportivo nunca se implementan (Parnell et al., 2017). El CAPA cierra esa brecha con responsable único, fecha, evidencia y cierre verificado.</p>
+      <h3>Reglas no negociables</h3>
+      <ul>
+        <li>Toda acción correctiva/preventiva tiene un responsable nominado.</li>
+        <li>El cierre requiere evidencia verificable, no solo la palabra del responsable.</li>
+        <li>Cada CAPA cerrado documenta una lección aprendida institucional.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h3 class="calc-h">Calculadora de cierre <span class="pill">en vivo</span></h3>
+      <p>Simule la tasa de implementación de su CAPA.</p>
+      <div class="row2">
+        <div><label class="field">CAPA cerrados</label><input type="number" id="m10_cerrados" value="1" min="0"></div>
+        <div><label class="field">CAPA totales</label><input type="number" id="m10_total" value="2" min="1"></div>
+      </div>
+      <div class="readout">
+        <div><div class="rlabel">Tasa de implementación</div><div class="rvalue" id="m10_tasa">—</div></div>
+        <div id="m10_badge"></div>
+      </div>
+      <div class="conclusion" id="m10_concl"></div>
+    </div>
+  </div>
+</section>
+
+<div class="lane-divider"></div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div><b>SIASPD / MAED 2026</b> — Entrenador interactivo · Basado en el Manual SIASPD/MAED 2026, INDE Nuevo León.</div>
+    <div>Uso interno de capacitación · Dirección de Alto Rendimiento</div>
+  </div>
+</footer>
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   0. Datos de las 10 estaciones + diagrama SVG del pipeline
+   ============================================================ */
+const METHODS = [
+  {id:'m1', n:1, name:'Desagregación'},
+  {id:'m2', n:2, name:'Cohortes'},
+  {id:'m3', n:3, name:'Trayectorias'},
+  {id:'m4', n:4, name:'Ishikawa'},
+  {id:'m5', n:5, name:'Pareto'},
+  {id:'m6', n:6, name:'AMFE'},
+  {id:'m7', n:7, name:'5 Porqués'},
+  {id:'m8', n:8, name:'Decisión'},
+  {id:'m9', n:9, name:'Plan de Acción'},
+  {id:'m10', n:10, name:'CAPA'},
+];
+
+function buildPipelineSvg(){
+  const svg = document.getElementById('pipelineSvg');
+  const W = 900, H = 300;
+  const n = METHODS.length;
+  const marginX = 55, topY = 150, amp = 78;
+  let path = `M ${marginX} ${topY}`;
+  const pts = [];
+  for(let i=0;i<n;i++){
+    const x = marginX + (W - 2*marginX) * (i/(n-1));
+    const y = topY + (i % 2 === 0 ? -amp : amp) * Math.sin(Math.PI * (i/(n-1)) ) * 0 + (i%2===0?-amp/2:amp/2);
+    pts.push({x, y: topY + ((i%2===0)? -1:1) * (amp*0.55)});
+  }
+  // simple smooth-ish polyline through points
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for(let i=1;i<pts.length;i++){
+    const prev = pts[i-1], cur = pts[i];
+    const midx = (prev.x+cur.x)/2;
+    d += ` C ${midx} ${prev.y}, ${midx} ${cur.y}, ${cur.x} ${cur.y}`;
+  }
+  let svgHtml = `<path d="${d}" fill="none" stroke="#20507F" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round" opacity="0.55"/>`;
+
+  pts.forEach((p,i)=>{
+    const m = METHODS[i];
+    svgHtml += `
+      <g class="node" data-target="${m.id}" transform="translate(${p.x},${p.y})">
+        <circle r="20" fill="#0F2A4A" stroke="#C79A3B" stroke-width="2"></circle>
+        <text x="0" y="5" text-anchor="middle" font-size="15" fill="#fff">${m.n}</text>
+        <text class="nlabel" x="0" y="${p.y < topY ? -30 : 40}" text-anchor="middle" font-size="11" fill="#12202E">${m.name}</text>
+      </g>`;
+  });
+  svg.innerHTML = svgHtml;
+  svg.querySelectorAll('.node').forEach(node=>{
+    node.addEventListener('click', ()=>{
+      const target = node.getAttribute('data-target');
+      document.getElementById(target).scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+}
+buildPipelineSvg();
+
+/* ============================================================
+   1. Scroll-spy: resalta la estación activa en la barra
+   ============================================================ */
+const stations = Array.from(document.querySelectorAll('.station'));
+const sections = ['overview', ...METHODS.map(m=>m.id)].map(id=>document.getElementById(id));
+const visited = new Set();
+
+function setActive(id){
+  stations.forEach(s=>s.classList.toggle('active', s.dataset.target === id));
+}
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      setActive(e.target.id);
+      if(e.target.id !== 'overview'){
+        visited.add(e.target.id);
+        const st = stations.find(s=>s.dataset.target===e.target.id);
+        if(st) st.classList.add('done');
+      }
+    }
+  });
+}, {rootMargin: '-45% 0px -45% 0px', threshold: 0});
+sections.forEach(s=> s && io.observe(s));
+
+/* ============================================================
+   2. Utilidades comunes
+   ============================================================ */
+function badgeHtml(nivel, texto){
+  const cls = nivel === 'verde' ? 'verde' : nivel === 'amarillo' ? 'amarillo' : nivel === 'azul' ? 'azul' : 'rojo';
+  return `<span class="badge ${cls}"><span class="dot"></span>${texto}</span>`;
+}
+function pct(x){ return (x*100).toFixed(1) + '%'; }
+
+/* ============================================================
+   3. Método 1 — Desagregación
+   ============================================================ */
+function calcM1(){
+  const clas = parseFloat(document.getElementById('m1_clas').value) || 0;
+  const fin = parseFloat(document.getElementById('m1_fin').value) || 0;
+  const med = parseFloat(document.getElementById('m1_med').value) || 0;
+  const meta = (parseFloat(document.getElementById('m1_meta').value) || 0) / 100;
+  const tasa = fin > 0 ? med / fin : 0;
+  document.getElementById('m1_tasa').textContent = pct(tasa);
+  let nivel, texto;
+  if(tasa >= meta){ nivel='verde'; texto='Verde'; }
+  else if(tasa >= 0.15){ nivel='amarillo'; texto='Amarillo'; }
+  else { nivel='rojo'; texto='Rojo'; }
+  document.getElementById('m1_badge').innerHTML = badgeHtml(nivel, texto);
+  document.getElementById('m1_concl').innerHTML =
+    `De <b>${clas}</b> atletas clasificados, <b>${fin}</b> llegaron a la final y <b>${med}</b> obtuvieron medalla: `+
+    `una tasa de conversión de <b>${pct(tasa)}</b> frente a una meta de <b>${pct(meta)}</b>. `+
+    (tasa>=meta ? 'El segmento está en línea con la meta institucional.' :
+     'El segmento está por debajo de la meta: continúe al Método 2 para saber si es sistémico.');
+}
+['m1_clas','m1_fin','m1_med','m1_meta'].forEach(id=>document.getElementById(id).addEventListener('input', calcM1));
+calcM1();
+
+/* ============================================================
+   4. Método 2 — Cohortes
+   ============================================================ */
+function calcM2(){
+  const rows = document.querySelectorAll('#m2_table tbody tr');
+  let bajoCount = 0;
+  rows.forEach(row=>{
+    const inputs = row.querySelectorAll('input.m2c');
+    const vals = Array.from(inputs).map(i=>parseFloat(i.value)||0);
+    const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+    if(avg < 15) bajoCount++;
+  });
+  document.getElementById('m2_count').textContent = bajoCount + ' de ' + rows.length;
+  const sistemico = bajoCount >= 3;
+  document.getElementById('m2_badge').innerHTML = sistemico ?
+    badgeHtml('rojo','Sistémico') : badgeHtml('amarillo','Generacional');
+  document.getElementById('m2_concl').innerHTML = sistemico ?
+    'El patrón se repite en <b>3 o más cohortes</b>: alta sospecha de problema <b>sistémico</b>. Complete la cadena completa SIASPD y evalúe Kaikaku.' :
+    'El patrón no se repite en suficientes cohortes: podría tratarse de un caso <b>generacional</b>. Aplique Kaizen exploratorio y siga monitoreando.';
+}
+document.querySelectorAll('#m2_table input.m2c').forEach(i=>i.addEventListener('input', calcM2));
+calcM2();
+
+/* ============================================================
+   5. Método 3 — Trayectorias (embudo)
+   ============================================================ */
+const M3_STAGES = [
+  {label:'Clasificados', val:11},
+  {label:'Cuartos de Final', val:11},
+  {label:'Semifinal', val:11},
+  {label:'Final', val:11},
+  {label:'Medalla', val:1},
+];
+function buildM3Inputs(){
+  const wrap = document.getElementById('m3_inputs');
+  wrap.innerHTML = M3_STAGES.map((s,i)=>`
+    <div class="row2" style="align-items:end;margin-bottom:6px;">
+      <div><label class="field" style="margin-top:4px;">${s.label}</label></div>
+      <div><input type="number" class="m3s" data-i="${i}" value="${s.val}" min="0"></div>
+    </div>`).join('');
+  wrap.querySelectorAll('.m3s').forEach(inp=>inp.addEventListener('input', calcM3));
+}
+function calcM3(){
+  const inputs = Array.from(document.querySelectorAll('.m3s'));
+  const vals = inputs.map(i=>parseFloat(i.value)||0);
+  const max = Math.max(...vals, 1);
+  let retentions = vals.map((v,i)=> i===0 ? 1 : (vals[i-1]>0 ? v/vals[i-1] : 0));
+  let minIdx = 1, minRet = 2;
+  for(let i=1;i<retentions.length;i++){
+    if(retentions[i] < minRet){ minRet = retentions[i]; minIdx = i; }
+  }
+  const funnelHtml = M3_STAGES.map((s,i)=>{
+    const width = Math.max(6, (vals[i]/max)*100);
+    const isBottleneck = i === minIdx;
+    return `<div class="funnel-row">
+      <div class="funnel-label">${s.label}</div>
+      <div class="funnel-bar-wrap"><div class="funnel-bar ${isBottleneck?'bottleneck':''}" style="width:${width}%">
+        <span>${vals[i]}${i>0? ' · '+pct(retentions[i]):''}</span></div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('m3_funnel').innerHTML = funnelHtml;
+  document.getElementById('m3_concl').innerHTML =
+    `El cuello de botella crítico se ubica en <b>${M3_STAGES[minIdx].label}</b>, con una pérdida de <b>${pct(1-minRet)}</b> `+
+    `de los atletas en ese tramo. Concentre ahí la intervención antes de dispersar recursos en el resto del proceso.`;
+}
+buildM3Inputs();
+calcM3();
+
+/* ============================================================
+   6. Método 4 — Ishikawa interactivo
+   ============================================================ */
+const ISHIKAWA_CATS = ['Entrenamiento','Entrenador','Desarrollo Biológico','Experiencia Competitiva','Entorno','Evaluación del Talento','Salud / Recuperación','Psicología'];
+const causesByCat = {};
+ISHIKAWA_CATS.forEach(c=>causesByCat[c]=[]);
+causesByCat['Psicología'].push('Descontrol emocional bajo presión en semifinal');
+causesByCat['Experiencia Competitiva'].push('Bajo número de fogueos nacionales previos');
+let activeCat = null;
+
+function renderFishbone(){
+  const wrap = document.getElementById('fishboneCats');
+  wrap.innerHTML = ISHIKAWA_CATS.map(cat=>`
+    <div class="cat-card" data-cat="${cat}">
+      <div class="cat-name">${cat}</div>
+      <div class="cat-count">${causesByCat[cat].length} causa(s)</div>
+    </div>`).join('');
+  wrap.querySelectorAll('.cat-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      activeCat = card.getAttribute('data-cat');
+      document.getElementById('causeInputArea').style.display = 'block';
+      document.getElementById('causeInputLabel').textContent = 'Nueva causa — ' + activeCat;
+      renderCauseTags();
+    });
+  });
+}
+function renderCauseTags(){
+  if(!activeCat) return;
+  const list = causesByCat[activeCat];
+  document.getElementById('causeTagList').innerHTML = list.map((c,i)=>
+    `<span class="cause-tag">${c}<button data-i="${i}">×</button></span>`).join('') ||
+    '<span class="small muted">Aún no hay causas registradas en esta categoría.</span>';
+  document.querySelectorAll('#causeTagList button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      list.splice(parseInt(btn.getAttribute('data-i')),1);
+      renderFishbone();
+      activeCatReopen();
+    });
+  });
+}
+function activeCatReopen(){
+  document.getElementById('causeInputArea').style.display = 'block';
+  document.getElementById('causeInputLabel').textContent = 'Nueva causa — ' + activeCat;
+  renderCauseTags();
+}
+document.getElementById('addCauseBtn').addEventListener('click', ()=>{
+  const txt = document.getElementById('causeInputText').value.trim();
+  if(!txt || !activeCat) return;
+  causesByCat[activeCat].push(txt);
+  document.getElementById('causeInputText').value='';
+  renderFishbone();
+  activeCatReopen();
+  syncM5FromIshikawa();
+});
+renderFishbone();
+
+/* ============================================================
+   7. Método 5 — Pareto
+   ============================================================ */
+let paretoCauses = [
+  {name:'Descontrol emocional bajo presión', freq:9},
+  {name:'Ausencia de pacing documentado', freq:8},
+  {name:'Bajo número de fogueos nacionales', freq:7},
+  {name:'Rotación de entrenador entre ciclos', freq:3},
+  {name:'Sin monitoreo de recuperación (HRV)', freq:2},
+];
+function syncM5FromIshikawa(){
+  // agrega automáticamente causas nuevas de Ishikawa que aún no estén en Pareto
+  Object.values(causesByCat).flat().forEach(c=>{
+    if(!paretoCauses.find(p=>p.name===c)) paretoCauses.push({name:c, freq:5});
+  });
+  renderM5();
+}
+function renderM5(){
+  const sorted = [...paretoCauses].sort((a,b)=>b.freq-a.freq);
+  const total = sorted.reduce((s,c)=>s+c.freq,0) || 1;
+  let acum = 0;
+  const tbody = document.getElementById('m5_tbody');
+  tbody.innerHTML = sorted.map((c,i)=>{
+    const p = c.freq/total;
+    acum += p;
+    const priority = acum <= 0.8;
+    return `<tr class="${priority?'priority':''}">
+      <td>${c.name}</td>
+      <td>${c.freq}</td>
+      <td>${pct(p)}</td>
+      <td>${pct(acum)}</td>
+      <td><button class="btn small ghost" data-name="${c.name}">Quitar</button></td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      paretoCauses = paretoCauses.filter(c=>c.name !== btn.getAttribute('data-name'));
+      renderM5();
+    });
+  });
+  const chart = document.getElementById('m5_chart');
+  const maxFreq = Math.max(...sorted.map(c=>c.freq), 1);
+  acum = 0;
+  chart.innerHTML = sorted.map(c=>{
+    const p = c.freq/total; acum += p;
+    const h = (c.freq/maxFreq)*140;
+    const priority = acum <= 0.8;
+    return `<div class="pbar-col">
+      <div class="pbar-val">${c.freq}</div>
+      <div class="pbar ${priority?'priority':''}" style="height:${h}px;"></div>
+      <div class="pbar-name">${c.name}</div>
+    </div>`;
+  }).join('');
+  const nPriority = sorted.filter((c,i)=>{
+    let a=0; for(let j=0;j<=i;j++) a += sorted[j].freq/total;
+    return a<=0.8;
+  }).length;
+  document.getElementById('m5_concl').innerHTML =
+    `<b>${nPriority}</b> de <b>${sorted.length}</b> causas concentran el 80% del impacto (resaltadas en rojo). `+
+    `Enfoque ahí el 80% de los recursos de intervención.`;
+}
+document.getElementById('m5_add').addEventListener('click', ()=>{
+  const name = document.getElementById('m5_newcausa').value.trim();
+  const freq = parseFloat(document.getElementById('m5_newfreq').value) || 5;
+  if(!name) return;
+  paretoCauses.push({name, freq});
+  document.getElementById('m5_newcausa').value='';
+  document.getElementById('m5_newfreq').value='';
+  renderM5();
+});
+renderM5();
+
+/* ============================================================
+   8. Método 6 — AMFE
+   ============================================================ */
+function calcM6(){
+  const s = parseInt(document.getElementById('m6_s').value);
+  const o = parseInt(document.getElementById('m6_o').value);
+  const d = parseInt(document.getElementById('m6_d').value);
+  document.getElementById('m6_sv').textContent = s;
+  document.getElementById('m6_ov').textContent = o;
+  document.getElementById('m6_dv').textContent = d;
+  const ipr = s*o*d;
+  document.getElementById('m6_ipr').textContent = ipr;
+  let nivel, texto;
+  if(ipr>=200){nivel='rojo';texto='Muy Alto';}
+  else if(ipr>=100){nivel='amarillo';texto='Alto';}
+  else if(ipr>=50){nivel='amarillo';texto='Medio';}
+  else {nivel='verde';texto='Bajo';}
+  document.getElementById('m6_badge').innerHTML = badgeHtml(nivel, texto);
+  const nombre = document.getElementById('m6_nombre').value || 'este modo de falla';
+  document.getElementById('m6_concl').innerHTML =
+    `IPR = ${s} × ${o} × ${d} = <b>${ipr}</b>. Clasificación: <b>${texto}</b>. `+
+    (ipr>=100 ? `"${nombre}" requiere acción preventiva inmediata (IPR ≥ 100).` :
+                `"${nombre}" puede monitorearse sin acción inmediata, pero revíselo en el próximo ciclo.`);
+}
+['m6_s','m6_o','m6_d','m6_nombre'].forEach(id=>document.getElementById(id).addEventListener('input', calcM6));
+calcM6();
+
+/* ============================================================
+   9. Método 7 — 5 Porqués
+   ============================================================ */
+let whyStep = 0;
+function renderWhyChain(){
+  const chain = document.getElementById('m7_chain');
+  chain.innerHTML = '';
+  for(let i=0;i<whyStep;i++){
+    const div = document.createElement('div');
+    div.className = 'why-step';
+    div.innerHTML = `<div class="why-num">${i+1}</div>
+      <div class="why-body">
+        <label class="field" style="margin-top:0;">¿Por qué? (nivel ${i+1})</label>
+        <input type="text" class="m7-why" data-i="${i}" placeholder="Escriba la respuesta a este nivel...">
+      </div>`;
+    chain.appendChild(div);
+    requestAnimationFrame(()=>div.classList.add('show'));
+  }
+  chain.querySelectorAll('.m7-why').forEach(inp=>{
+    inp.addEventListener('input', updateRoot);
+  });
+}
+function updateRoot(){
+  const inputs = Array.from(document.querySelectorAll('.m7-why'));
+  const last = inputs.length ? inputs[inputs.length-1].value.trim() : '';
+  if(whyStep>=5 && last){
+    document.getElementById('m7_root').style.display='block';
+    document.getElementById('m7_rootText').textContent = last;
+  } else {
+    document.getElementById('m7_root').style.display='none';
+  }
+}
+document.getElementById('m7_next').addEventListener('click', ()=>{
+  if(whyStep < 5){
+    whyStep++;
+    renderWhyChain();
+    document.getElementById('m7_next').textContent = whyStep<5 ? 'Agregar siguiente porqué ('+(whyStep+1)+'/5)' : 'Cadena completa (5/5)';
+    if(whyStep===5) document.getElementById('m7_next').disabled = true;
+  }
+});
+
+/* ============================================================
+   10. Método 8 — Matriz de decisión + gauge
+   ============================================================ */
+const M8_CRIT = [
+  {name:'Impacto en la conversión F→M', peso:0.30, signo:1, def:5},
+  {name:'Alcance sistémico del problema', peso:0.20, signo:1, def:4},
+  {name:'Viabilidad de implementación', peso:0.20, signo:1, def:3},
+  {name:'Costo estimado', peso:0.15, signo:-1, def:3},
+  {name:'Tiempo requerido', peso:0.10, signo:-1, def:3},
+  {name:'Riesgo de no ejecución', peso:0.05, signo:-1, def:2},
+];
+function buildM8(){
+  const wrap = document.getElementById('m8_sliders');
+  wrap.innerHTML = M8_CRIT.map((c,i)=>`
+    <label class="field">${c.name} <span id="m8_v${i}">${c.def}</span> <span class="small muted">(peso ${Math.round(c.peso*100)}%)</span></label>
+    <input type="range" min="1" max="5" value="${c.def}" class="m8s" data-i="${i}">
+  `).join('');
+  wrap.querySelectorAll('.m8s').forEach(inp=>inp.addEventListener('input', calcM8));
+}
+function drawGauge(scoreNorm){
+  // scoreNorm entre 0 y 1 (0=Kaizen, .5=Kaikaku, 1=Kakushin) aprox
+  const svg = document.getElementById('m8_gauge');
+  const cx=110, cy=110, r=90;
+  const angle = Math.PI - scoreNorm*Math.PI; // de 180° a 0°
+  const nx = cx + r*0.8*Math.cos(angle);
+  const ny = cy - r*0.8*Math.sin(angle);
+  svg.innerHTML = `
+    <path d="M 20 110 A 90 90 0 0 1 200 110" fill="none" stroke="#D9E0DD" stroke-width="16"/>
+    <path d="M 20 110 A 90 90 0 0 1 73 33" fill="none" stroke="#2F8F5B" stroke-width="16"/>
+    <path d="M 73 33 A 90 90 0 0 1 147 33" fill="none" stroke="#C68B1F" stroke-width="16"/>
+    <path d="M 147 33 A 90 90 0 0 1 200 110" fill="none" stroke="#20507F" stroke-width="16"/>
+    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#0F2A4A" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="7" fill="#0F2A4A"/>
+  `;
+}
+function calcM8(){
+  let score = 0;
+  M8_CRIT.forEach((c,i)=>{
+    const v = parseInt(document.querySelectorAll('.m8s')[i].value);
+    document.getElementById('m8_v'+i).textContent = v;
+    score += c.signo * v * c.peso;
+  });
+  document.getElementById('m8_score').textContent = 'Puntaje neto: ' + score.toFixed(2);
+  let resultado, norm;
+  if(score >= 3){ resultado='KAKUSHIN — innovación disruptiva'; norm=0.92; }
+  else if(score >= 1.5){ resultado='KAIKAKU — rediseño estructural'; norm=0.55; }
+  else { resultado='KAIZEN — mejora incremental'; norm=0.15; }
+  document.getElementById('m8_result').textContent = resultado;
+  drawGauge(norm);
+}
+buildM8();
+calcM8();
+
+/* ============================================================
+   11. Método 10 — CAPA
+   ============================================================ */
+function calcM10(){
+  const cerrados = parseFloat(document.getElementById('m10_cerrados').value)||0;
+  const total = parseFloat(document.getElementById('m10_total').value)||1;
+  const tasa = cerrados/total;
+  document.getElementById('m10_tasa').textContent = pct(tasa);
+  let nivel, texto;
+  if(tasa>=0.85){nivel='verde';texto='Verde';}
+  else if(tasa>=0.5){nivel='amarillo';texto='Amarillo';}
+  else {nivel='rojo';texto='Rojo';}
+  document.getElementById('m10_badge').innerHTML = badgeHtml(nivel,texto);
+  document.getElementById('m10_concl').innerHTML =
+    `Tasa de implementación de <b>${pct(tasa)}</b>. `+
+    (tasa>=0.85 ? 'Meta institucional de ≥85% alcanzada: buen cierre del ciclo de mejora continua.' :
+                  'Por debajo de la meta institucional de 85%: revise responsables y fechas comprometidas.');
+}
+['m10_cerrados','m10_total'].forEach(id=>document.getElementById(id).addEventListener('input', calcM10));
+calcM10();
+
+})();
+</script>
+</body>
+</html>
