@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIASPD / MAED 2026 · Curso de Capacitación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0F2A4A; --navy-2:#173A63; --navy-3:#20507F;
+  --paper:#EEF2F1; --card:#FFFFFF; --ink:#12202E; --ink-soft:#4C5C68; --line:#D9E0DD;
+  --lane:#C7362F; --gold:#C79A3B;
+  --verde:#2F8F5B; --verde-bg:#E4F3EB;
+  --rojo:#C43B3B; --rojo-bg:#FBE7E5;
+  --amarillo:#C68B1F; --amarillo-bg:#FCF1DA;
+  --azul:#20507F; --azul-bg:#E4EDF5;
+  --font-display:'Oswald',"Arial Narrow",sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,sans-serif;
+  --font-mono:'Roboto Mono',"Consolas",monospace;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;font-family:var(--font-body);background:var(--paper);color:var(--ink);line-height:1.6;}
+.lane-divider{height:7px;width:100%;background:repeating-linear-gradient(-45deg,var(--lane) 0px,var(--lane) 18px,#fff 18px,#fff 25px);opacity:.85;}
+
+header.topbar{background:var(--navy);color:#fff;padding:13px 20px;box-shadow:0 2px 14px rgba(0,0,0,.18);position:sticky;top:0;z-index:40;}
+.topbar-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.brand{font-family:var(--font-display);font-weight:600;font-size:18px;display:flex;align-items:baseline;gap:8px;}
+.brand small{font-family:var(--font-body);font-weight:500;font-size:11px;color:#9FB3C8;letter-spacing:.05em;text-transform:uppercase;}
+.brand-tag{font-size:11.5px;color:#9FB3C8;}
+.hdr-progress{display:flex;align-items:center;gap:10px;}
+.hdr-progress .bar{width:140px;height:8px;background:rgba(255,255,255,.15);border-radius:6px;overflow:hidden;}
+.hdr-progress .bar-fill{height:100%;background:var(--gold);border-radius:6px;transition:width .3s;}
+.hdr-progress .pct{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--gold);}
+
+.layout{display:flex;max-width:1180px;margin:0 auto;align-items:flex-start;}
+#sidebar{
+  width:290px;flex:0 0 auto;background:#fff;border-right:1px solid var(--line);
+  min-height:calc(100vh - 68px);padding:18px 0;position:sticky;top:68px;
+}
+.side-item{
+  display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;
+  border-left:3px solid transparent;transition:background .15s;
+}
+.side-item:hover{background:var(--paper);}
+.side-item.active{background:var(--azul-bg);border-left-color:var(--lane);}
+.side-item.locked{opacity:.45;cursor:not-allowed;}
+.side-icon{
+  width:24px;height:24px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:11px;font-weight:700;background:var(--paper);color:var(--ink-soft);border:1.5px solid var(--line);
+}
+.side-icon.done{background:var(--verde);border-color:var(--verde);color:#fff;}
+.side-icon.current{border-color:var(--lane);color:var(--lane);}
+.side-icon.locked{color:var(--ink-soft);}
+.side-label{font-size:12.8px;color:var(--ink);line-height:1.3;}
+.side-item.active .side-label{font-weight:600;color:var(--navy);}
+
+#content{flex:1 1 auto;padding:36px 40px 90px 40px;max-width:820px;}
+
+.eyebrow{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.1em;color:var(--lane);text-transform:uppercase;font-weight:700;margin:0 0 8px 0;}
+h1.page-title{font-family:var(--font-display);font-weight:600;font-size:clamp(24px,3.4vw,34px);line-height:1.1;margin:0 0 14px 0;color:var(--navy);}
+p.lede{font-size:15px;color:var(--ink-soft);margin:0 0 26px 0;}
+
+/* ---------- lesson content ---------- */
+.lesson h2{font-family:var(--font-display);font-size:19px;font-weight:600;color:var(--navy);margin:26px 0 10px 0;}
+.lesson h2:first-child{margin-top:0;}
+.lesson p{font-size:14.3px;color:var(--ink);margin:0 0 12px 0;}
+.lesson ul, .lesson ol{margin:0 0 14px 0;padding-left:20px;}
+.lesson li{font-size:14.3px;color:var(--ink);margin-bottom:7px;}
+.lesson b{color:var(--navy);}
+.callout{
+  background:var(--azul-bg);border-left:4px solid var(--azul);border-radius:6px;
+  padding:13px 16px;margin:16px 0;font-size:13.6px;color:var(--ink);
+}
+.callout.gold{background:#FBF6E9;border-left-color:var(--gold);}
+.callout.gold b{color:var(--navy);}
+.callout b{color:var(--azul);}
+.minitable{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+.minitable th{background:var(--navy);color:#fff;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;padding:7px 10px;text-align:left;letter-spacing:.04em;}
+.minitable td{padding:7px 10px;border-bottom:1px solid var(--line);}
+.minitable tr:nth-child(even) td{background:var(--paper);}
+
+/* ---------- quiz ---------- */
+.quiz-section{margin-top:38px;padding-top:26px;border-top:2px solid var(--line);}
+.quiz-header{font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+.quiz-sub{font-size:13px;color:var(--ink-soft);margin-bottom:20px;}
+.qcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px;}
+.qcard .qnum{font-family:var(--font-mono);font-size:10.5px;color:var(--lane);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.qcard .qtext{font-size:14.5px;font-weight:600;color:var(--ink);margin-bottom:12px;}
+.qopt{
+  display:block;width:100%;text-align:left;background:var(--paper);border:1.5px solid transparent;border-radius:7px;
+  padding:10px 13px;font-size:13.5px;color:var(--ink);cursor:pointer;margin-bottom:8px;transition:border-color .15s,background .15s;
+}
+.qopt:hover:not(:disabled){border-color:var(--navy-3);}
+.qopt:disabled{cursor:default;}
+.qopt.correct{background:var(--verde-bg);border-color:var(--verde);color:#1E5B25;font-weight:600;}
+.qopt.wrong{background:var(--rojo-bg);border-color:var(--rojo);color:#8A2020;}
+.qopt.faded{opacity:.5;}
+.qfeedback{font-size:12.8px;padding:9px 12px;border-radius:6px;margin-top:4px;display:none;}
+.qfeedback.show{display:block;}
+.qfeedback.ok{background:var(--verde-bg);color:#1E5B25;}
+.qfeedback.bad{background:var(--rojo-bg);color:#8A2020;}
+
+.quiz-result{
+  background:var(--navy);border-radius:10px;padding:22px 24px;margin-top:22px;text-align:center;
+}
+.quiz-result .qr-score{font-family:var(--font-mono);font-weight:700;font-size:34px;color:#fff;}
+.quiz-result .qr-score span{font-size:16px;color:#9FB3C8;}
+.quiz-result .qr-msg{font-size:13.5px;color:#9FB3C8;margin-top:6px;}
+.quiz-result.pass .qr-score{color:var(--gold);}
+
+.actions-row{display:flex;justify-content:space-between;align-items:center;margin-top:26px;flex-wrap:wrap;gap:10px;}
+button.btn{
+  font-family:var(--font-body);font-weight:600;font-size:13.5px;background:var(--navy);color:#fff;
+  border:none;border-radius:7px;padding:11px 20px;cursor:pointer;transition:background .15s;
+}
+button.btn:hover{background:var(--navy-3);}
+button.btn:disabled{background:var(--line);color:var(--ink-soft);cursor:not-allowed;}
+button.btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--line);}
+button.btn.lane{background:var(--lane);}
+button.btn.lane:hover{background:#a52a24;}
+
+/* ---------- welcome / cert ---------- */
+.hero-panel{background:var(--navy);border-radius:12px;padding:34px 30px;color:#fff;margin-bottom:26px;}
+.hero-panel h1{font-family:var(--font-display);font-size:clamp(24px,4vw,32px);font-weight:600;margin:0 0 12px 0;}
+.hero-panel p{color:#CBD8E6;font-size:14.5px;margin:0;max-width:560px;}
+.module-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0;}
+.module-chip{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 13px;font-size:12.5px;color:var(--ink-soft);display:flex;gap:8px;align-items:center;}
+.module-chip b{color:var(--navy);font-weight:600;}
+
+.cert{
+  background:#fff;border:3px solid var(--navy);border-radius:4px;padding:50px 40px;text-align:center;
+  position:relative;
+}
+.cert::before{content:'';position:absolute;inset:10px;border:1.5px solid var(--gold);border-radius:2px;pointer-events:none;}
+.cert .cert-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;color:var(--lane);text-transform:uppercase;font-weight:700;}
+.cert h2{font-family:var(--font-display);font-size:15px;color:var(--ink-soft);font-weight:500;margin:16px 0 4px 0;text-transform:uppercase;letter-spacing:.05em;}
+.cert .cert-name{font-family:var(--font-display);font-size:32px;font-weight:600;color:var(--navy);margin:8px 0 18px 0;border-bottom:2px solid var(--gold);display:inline-block;padding-bottom:8px;}
+.cert p.cert-body{font-size:13.5px;color:var(--ink-soft);max-width:480px;margin:0 auto 18px auto;}
+.cert .cert-score{font-family:var(--font-mono);font-weight:700;font-size:20px;color:var(--navy);margin-bottom:20px;}
+.cert .cert-footer{display:flex;justify-content:space-around;margin-top:30px;font-size:11px;color:var(--ink-soft);}
+.cert .cert-footer div{border-top:1px solid var(--line);padding-top:6px;width:180px;}
+
+@media (max-width:900px){
+  .layout{flex-direction:column;}
+  #sidebar{position:relative;top:0;width:100%;min-height:auto;display:flex;overflow-x:auto;padding:10px;border-right:none;border-bottom:1px solid var(--line);}
+  .side-item{flex:0 0 auto;border-left:none;border-bottom:3px solid transparent;white-space:nowrap;}
+  .side-item.active{border-bottom-color:var(--lane);}
+  #content{padding:24px 18px 70px 18px;max-width:100%;}
+  .module-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <div class="brand">SIASPD <small>/ MAED 2026</small></div>
+      <div class="brand-tag">Curso de Capacitación · INDE Nuevo León</div>
+    </div>
+    <div class="hdr-progress" id="hdrProgress" style="display:none;">
+      <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+      <div class="pct" id="pctVal">0%</div>
+    </div>
+  </div>
+</header>
+<div class="lane-divider"></div>
+<div class="layout">
+  <div id="sidebar"></div>
+  <div id="content"></div>
+</div>
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   ESTRUCTURA DEL CURSO: 14 módulos (0 = bienvenida, 13 = cierre+examen)
+   ============================================================ */
+const COURSE = [
+
+{id:'m0', kind:'welcome', title:'Bienvenida', short:'Bienvenida',
+  },
+
+{id:'m1', kind:'lesson', title:'Fundamentos del Sistema', short:'1 · Fundamentos',
+  lesson:`
+    <h2>¿Por qué existe el SIASPD?</h2>
+    <p>El deporte de alto rendimiento en México atraviesa una brecha medible: la tasa de conversión de atletas finalistas a medallistas se ubica en <b>11–14%</b> en la mayoría de los estados, frente a <b>28–35%</b> en países comparables como Brasil, Argentina o Colombia. Esta diferencia no se explica por el talento disponible, sino por la <b>fragmentación decisional</b>: cada área —técnica, médica, psicológica, administrativa— opera con su propia lógica, produciendo intervenciones redundantes o contradictorias.</p>
+    <div class="callout"><b>Principio rector del manual:</b> "Intervenir sin diagnosticar es una forma de negligencia metodológica que desperdicia recursos y erosiona la confianza del atleta."</div>
+    <h2>Tres pilares que justifican el sistema</h2>
+    <ul>
+      <li><b>Evidencia comparativa:</b> el proyecto SPLISS (15 naciones) identificó los sistemas formalizados de gestión del talento como el segundo predictor más fuerte del éxito deportivo internacional.</li>
+      <li><b>Epistemología del cambio:</b> la taxonomía Kaizen–Kaikaku–Kakushin permite calibrar el tipo de intervención correcto, evitando sub- y sobre-intervención.</li>
+      <li><b>Brecha implementación-resultado:</b> entre 40% y 60% de las decisiones técnicas acordadas en reuniones de staff nunca se ejecutan. El componente CAPA existe para cerrar esa brecha.</li>
+    </ul>
+    <h2>Marco teórico de referencia</h2>
+    <table class="minitable">
+      <tr><th>Modelo</th><th>Aporta</th></tr>
+      <tr><td>LTAD</td><td>Desarrollo atlético a largo plazo por etapas madurativas</td></tr>
+      <tr><td>FTEM</td><td>Progresión Fundación → Talento → Élite → Maestría</td></tr>
+      <tr><td>SPLISS</td><td>9 pilares de política deportiva de éxito internacional</td></tr>
+      <tr><td>PDCA / Lean</td><td>Base del ciclo de mejora continua (Kaizen)</td></tr>
+    </table>
+    <h2>Objetivo general del sistema</h2>
+    <p>Establecer un protocolo institucional que permita optimizar la conversión de atletas hacia resultados competitivos sostenidos, mediante un sistema <b>secuencial</b> de diagnóstico, análisis, priorización, intervención y control basado en evidencia.</p>
+  `,
+  quiz:[
+    {q:'Según el manual, ¿cuál es la causa principal de la brecha de conversión finalista-medallista en México?',
+      opts:[
+        {t:'La falta de talento biológico disponible en el país.', c:false},
+        {t:'La fragmentación decisional entre departamentos técnico, médico, psicológico y administrativo.', c:true},
+        {t:'El clima de las distintas regiones del país.', c:false},
+        {t:'La falta de instalaciones deportivas en todos los estados.', c:false},
+      ], explain:'El manual atribuye la brecha a diferencias sistémicas en la calidad del proceso de gestión, no a diferencias biológicas en el talento disponible.'},
+    {q:'¿Qué componente del sistema existe específicamente para cerrar la "brecha implementación-resultado"?',
+      opts:[
+        {t:'El Diagrama de Ishikawa (Método 4).', c:false},
+        {t:'El AMFE (Método 6).', c:false},
+        {t:'El CAPA (Método 10).', c:true},
+        {t:'La Desagregación (Método 1).', c:false},
+      ], explain:'El CAPA aporta trazabilidad completa, responsabilidad nominada y métricas de cierre verificables, cerrando la brecha entre lo acordado y lo ejecutado.'},
+    {q:'¿Qué representa la taxonomía Kaizen–Kaikaku–Kakushin dentro del sistema?',
+      opts:[
+        {t:'Tres deportes prioritarios del INDE.', c:false},
+        {t:'Tres niveles de profundidad de intervención, para evitar sub- o sobre-intervención.', c:true},
+        {t:'Tres fases del calendario competitivo anual.', c:false},
+        {t:'Tres categorías de edad de los atletas.', c:false},
+      ], explain:'Kaizen (mejora incremental), Kaikaku (rediseño estructural) y Kakushin (innovación disruptiva) permiten calibrar el tipo correcto de intervención según la naturaleza del problema.'},
+  ]},
+
+{id:'m2', kind:'lesson', title:'Método 1 · Desagregación', short:'2 · M1 Desagregación',
+  lesson:`
+    <h2>Ubicar el problema, no adivinarlo</h2>
+    <p>La Desagregación ubica con precisión el segmento —rama, categoría, disciplina, prueba, fase competitiva— donde se concentra el problema real, rompiendo la <b>ilusión de un problema uniforme</b>. Sin este paso, los recursos se dispersan sobre todo el sistema en vez de concentrarse donde realmente se pierde la medalla.</p>
+    <h2>Variables estándar de desagregación</h2>
+    <ul>
+      <li>Deporte, rama (varonil/femenil), categoría, prueba/modalidad</li>
+      <li>Evento o competencia de referencia (ej. Olimpiada Nacional CONADE)</li>
+      <li>Fase competitiva donde ocurre el mayor quiebre</li>
+    </ul>
+    <div class="callout gold"><b>Caso real (natación, INDE Nuevo León):</b> la tasa de clasificación es razonable, pero la caída crítica ocurre específicamente en el tramo <b>semifinal→final</b>, con 91% de pérdida en ese tramo. Sin desagregación, esta localización sería invisible.</div>
+    <h2>Al terminar este método obtienes</h2>
+    <p>Un <b>mapa de quiebres</b>: el segmento exacto donde concentrar el diagnóstico de los siguientes métodos, y una tasa de conversión finalista→medallista calculada para ese segmento específico.</p>
+  `,
+  quiz:[
+    {q:'¿Cuál es el propósito principal del Método 1 (Desagregación)?',
+      opts:[
+        {t:'Decidir directamente qué tipo de intervención aplicar.', c:false},
+        {t:'Ubicar con precisión el segmento exacto donde se concentra el problema.', c:true},
+        {t:'Calcular el presupuesto necesario para el siguiente ciclo.', c:false},
+        {t:'Evaluar el riesgo de lesión de los atletas.', c:false},
+      ], explain:'La Desagregación es el primer paso descriptivo: localizar el segmento antes de analizar causas o decidir intervenciones.'},
+    {q:'En el caso real de natación citado en el manual, ¿dónde se concentra el 91% de la pérdida de atletas?',
+      opts:[
+        {t:'En la fase de clasificación estatal.', c:false},
+        {t:'En el tramo semifinal → final.', c:true},
+        {t:'En el proceso de inscripción al programa.', c:false},
+        {t:'En la etapa de entrenamiento de base.', c:false},
+      ], explain:'La desagregación reveló que la caída se concentra específicamente en semifinal→final, no en todo el proceso.'},
+    {q:'¿Qué produce como resultado (output) el Método 1?',
+      opts:[
+        {t:'Un plan de acción con responsables y fechas.', c:false},
+        {t:'Un mapa de quiebres: el segmento crítico identificado.', c:true},
+        {t:'Una matriz de riesgos AMFE completa.', c:false},
+        {t:'La causa raíz operativa del problema.', c:false},
+      ], explain:'El mapa de quiebres es el insumo (input) exacto que necesita el Método 2 para analizar si el problema es sistémico o generacional.'},
+  ]},
+
+{id:'m3', kind:'lesson', title:'Método 2 · Cohortes', short:'3 · M2 Cohortes',
+  lesson:`
+    <h2>¿Es un problema estructural o una generación débil?</h2>
+    <p>El Análisis de Cohortes determina si el problema identificado en el Método 1 se repite en el tiempo (<b>sistémico</b>) o es un caso aislado de una sola generación (<b>generacional</b>). La distinción importa: confundirlas puede costar 2-4 ciclos de espera innecesaria y pérdida de talento que el sistema habría podido retener con intervención temprana.</p>
+    <h2>El criterio de las 3 cohortes</h2>
+    <p>Se examinan al menos <b>tres cohortes (generaciones) consecutivas</b>. Si el mismo patrón bajo desempeño aparece en tres o más cohortes, el diagnóstico es <b>sistémico</b> y exige un rediseño estructural (Kaikaku). Si aparece solo en una generación, es <b>generacional</b> y admite un abordaje Kaizen exploratorio mientras se sigue monitoreando.</p>
+    <div class="callout"><b>Consecuencia de gestión:</b> un problema sistémico tratado como generacional recibe mejoras incrementales que nunca resuelven la causa estructural; un problema generacional tratado como sistémico provoca rediseños innecesarios y costosos.</div>
+    <h2>Requisito de datos</h2>
+    <p>Este método requiere <b>historial longitudinal de 3-4 ciclos</b> por cohorte. Cuando estos datos no existen, el INDE debe priorizar la construcción de una base de datos longitudinal como inversión de largo plazo en capacidad diagnóstica futura.</p>
+  `,
+  quiz:[
+    {q:'¿Cuál es el criterio del manual para diagnosticar un problema como "sistémico"?',
+      opts:[
+        {t:'Que ocurra en una sola cohorte, sin importar la magnitud.', c:false},
+        {t:'Que el mismo patrón se repita en 3 o más cohortes consecutivas.', c:true},
+        {t:'Que el entrenador lo reporte como grave.', c:false},
+        {t:'Que afecte a más de 50 atletas.', c:false},
+      ], explain:'El criterio de las 3 cohortes es el umbral diagnóstico objetivo que usa el manual para esta decisión.'},
+    {q:'¿Qué tipo de intervención corresponde típicamente a un diagnóstico "sistémico"?',
+      opts:[
+        {t:'Kaizen (mejora incremental).', c:false},
+        {t:'Kaikaku (rediseño estructural).', c:true},
+        {t:'Ninguna intervención, solo esperar.', c:false},
+        {t:'Aplicar el mismo protocolo de la generación anterior sin cambios.', c:false},
+      ], explain:'Un problema que se repite estructuralmente en 3+ cohortes requiere rediseñar el proceso, no solo ajustarlo.'},
+    {q:'¿Qué riesgo de gestión señala el manual si se confunde un problema sistémico con uno generacional?',
+      opts:[
+        {t:'Ningún riesgo relevante, el resultado es el mismo.', c:false},
+        {t:'Puede costar 2-4 ciclos de espera innecesaria y pérdida de talento.', c:true},
+        {t:'Solo afecta el presupuesto de viáticos.', c:false},
+        {t:'Genera un exceso de innovación disruptiva.', c:false},
+      ], explain:'Tratar un problema estructural como si fuera pasajero retrasa la corrección real durante varios ciclos, con el consiguiente costo de talento perdido.'},
+  ]},
+
+{id:'m4', kind:'lesson', title:'Método 3 · Trayectorias', short:'4 · M3 Trayectorias',
+  lesson:`
+    <h2>Ver dónde se rompe el proceso</h2>
+    <p>El Análisis de Trayectorias construye la matriz de retención y el <b>embudo de conversión</b> (real vs. esperado vs. referente externo) para localizar la etapa exacta donde se produce la mayor pérdida de atletas en la ruta hacia la medalla.</p>
+    <h2>Metodología</h2>
+    <ol>
+      <li>Listar las etapas competitivas en orden (clasificación → medalla).</li>
+      <li>Registrar cuántos atletas llegan a cada etapa.</li>
+      <li>Calcular la retención etapa a etapa.</li>
+      <li>Identificar el <b>cuello de botella</b>: la etapa con mayor caída relativa.</li>
+    </ol>
+    <div class="callout gold"><b>Regla práctica:</b> concentre primero los recursos en el tramo de mayor pérdida. Intervenir etapas ya sólidas antes de resolver el cuello de botella es la forma más común de desperdiciar presupuesto.</div>
+    <h2>Conecta con el siguiente método</h2>
+    <p>El output de este método —el "drop-off map" con la fase crítica identificada— es exactamente el insumo que el Método 4 (Ishikawa) necesita para preguntarse: ¿por qué se rompe el proceso justo ahí?</p>
+  `,
+  quiz:[
+    {q:'¿Qué construye el Método 3 para localizar dónde se pierde a los atletas?',
+      opts:[
+        {t:'Un diagrama de Ishikawa.', c:false},
+        {t:'Un embudo de conversión con retención etapa por etapa.', c:true},
+        {t:'Una matriz AMFE.', c:false},
+        {t:'Un plan de acción con responsables.', c:false},
+      ], explain:'El embudo de conversión (matriz de retención) es la herramienta central de este método.'},
+    {q:'¿Cómo se identifica el "cuello de botella" en el embudo?',
+      opts:[
+        {t:'Es siempre la primera etapa del proceso.', c:false},
+        {t:'Es la etapa con la mayor caída relativa de retención respecto a la etapa anterior.', c:true},
+        {t:'Es la etapa donde participan más atletas en números absolutos.', c:false},
+        {t:'Se elige de forma arbitraria por el entrenador.', c:false},
+      ], explain:'El cuello de botella es la etapa donde, proporcionalmente, se pierde el mayor porcentaje de atletas respecto a la etapa previa.'},
+    {q:'Según la "regla práctica" del método, ¿dónde deben concentrarse primero los recursos?',
+      opts:[
+        {t:'En todas las etapas por igual.', c:false},
+        {t:'En las etapas ya sólidas, para reforzarlas aún más.', c:false},
+        {t:'En el tramo de mayor pérdida (el cuello de botella).', c:true},
+        {t:'En la etapa final, la más visible institucionalmente.', c:false},
+      ], explain:'Intervenir donde ya funciona bien, ignorando el cuello de botella real, es la forma más común de desperdiciar presupuesto según el manual.'},
+  ]},
+
+{id:'m5', kind:'lesson', title:'Método 4 · Ishikawa', short:'5 · M4 Ishikawa',
+  lesson:`
+    <h2>Entender por qué, en 8 categorías</h2>
+    <p>El Diagrama de Ishikawa deportivo organiza las causas reales —no los síntomas— en 8 categorías, reconociendo la <b>convergencia multifactorial</b> como norma: rara vez hay una sola causa detrás de un problema competitivo relevante.</p>
+    <table class="minitable">
+      <tr><th>Categoría</th><th>Ejemplo</th></tr>
+      <tr><td>Entrenamiento</td><td>Ausencia de trabajo específico de pacing</td></tr>
+      <tr><td>Entrenador</td><td>Rotación frecuente entre ciclos, falta de formación específica</td></tr>
+      <tr><td>Desarrollo Biológico</td><td>Exigencias no ajustadas a la etapa madurativa</td></tr>
+      <tr><td>Experiencia Competitiva</td><td>Bajo número de fogueos nacionales</td></tr>
+      <tr><td>Entorno</td><td>Condiciones de instalaciones o logística</td></tr>
+      <tr><td>Evaluación del Talento</td><td>Criterios de selección poco válidos</td></tr>
+      <tr><td>Salud / Recuperación</td><td>Ausencia de monitoreo de recuperación (HRV)</td></tr>
+      <tr><td>Psicología</td><td>Descontrol emocional bajo presión competitiva</td></tr>
+    </table>
+    <div class="callout gold"><b>Caso real (taekwondo):</b> convergen simultáneamente descontrol emocional (Psicología) y lectura táctica deficiente (Experiencia Competitiva) como causas vitales — ninguna por sí sola explica el problema completo.</div>
+  `,
+  quiz:[
+    {q:'¿Cuántas categorías tiene el Diagrama de Ishikawa deportivo del SIASPD?',
+      opts:[{t:'4', c:false},{t:'6', c:false},{t:'8', c:true},{t:'10', c:false}],
+      explain:'Las 8 categorías son: Entrenamiento, Entrenador, Desarrollo Biológico, Experiencia Competitiva, Entorno, Evaluación del Talento, Salud/Recuperación y Psicología.'},
+    {q:'¿Qué principio establece el manual sobre la causalidad de los problemas deportivos?',
+      opts:[
+        {t:'Casi siempre hay una única causa dominante.', c:false},
+        {t:'La convergencia multifactorial es la norma, no la excepción.', c:true},
+        {t:'Las causas psicológicas nunca son relevantes en el alto rendimiento.', c:false},
+        {t:'Solo las causas de entrenamiento son relevantes.', c:false},
+      ], explain:'El manual insiste en que los fracasos competitivos de mayor impacto resultan casi siempre de la convergencia de varios factores simultáneos.'},
+    {q:'"Rotación de entrenador entre ciclos" pertenece principalmente a la categoría de:',
+      opts:[{t:'Psicología', c:false},{t:'Entrenador', c:true},{t:'Entorno', c:false},{t:'Salud / Recuperación', c:false}],
+      explain:'La continuidad y formación del cuerpo técnico corresponde a la categoría Entrenador.'},
+  ]},
+
+{id:'m6', kind:'lesson', title:'Método 5 · Pareto', short:'6 · M5 Pareto',
+  lesson:`
+    <h2>Priorizar qué atacar primero</h2>
+    <p>El Análisis de Pareto enfoca el <b>80% de los recursos en el 20-30% de causas</b> que generan el 70-80% del impacto. Sin priorizar, los recursos se dispersan sobre causas de bajo impacto real.</p>
+    <h2>Metodología</h2>
+    <ol>
+      <li>Listar las causas (idealmente traídas del Ishikawa).</li>
+      <li>Asignar una frecuencia/impacto cuantificado a cada una.</li>
+      <li>Calcular % del total y % acumulado, ordenando de mayor a menor.</li>
+      <li>Marcar como <b>vitales</b> las causas hasta llegar a ~80% acumulado.</li>
+    </ol>
+    <div class="callout"><b>Variante avanzada:</b> el Pareto Ponderado combina Impacto × Probabilidad × Factibilidad, útil cuando la frecuencia bruta no refleja bien la urgencia real de cada causa.</div>
+    <h2>Requisito estadístico</h2>
+    <p>El análisis de Pareto requiere un mínimo de <b>8-10 casos de fracaso</b> para que las frecuencias sean estadísticamente informativas. Con muestras más pequeñas, debe complementarse con análisis cualitativo (entrevistas, observación de video).</p>
+  `,
+  quiz:[
+    {q:'¿Qué proporción de recursos recomienda concentrar el Pareto sobre las causas vitales?',
+      opts:[{t:'20% de los recursos en el 80% de las causas.', c:false},{t:'80% de los recursos en el 20-30% de las causas de mayor impacto.', c:true},{t:'Los recursos deben repartirse siempre en partes iguales.', c:false},{t:'100% de los recursos en una sola causa.', c:false}],
+      explain:'La regla 80/20 es el núcleo del método: concentrar el esfuerzo en las pocas causas que explican la mayoría del impacto.'},
+    {q:'¿Cuál es el tamaño mínimo de muestra que recomienda el manual para que el Pareto sea estadísticamente informativo?',
+      opts:[{t:'2-3 casos.', c:false},{t:'8-10 casos de fracaso.', c:true},{t:'100 casos.', c:false},{t:'No hay un mínimo, cualquier cantidad sirve igual.', c:false}],
+      explain:'Con menos de 8-10 casos, el manual recomienda complementar con análisis cualitativo para compensar la limitación estadística.'},
+    {q:'El "Pareto Ponderado" combina impacto, probabilidad y:',
+      opts:[{t:'Factibilidad.', c:true},{t:'Presupuesto anual del INDE.', c:false},{t:'Número de medallas históricas del deporte.', c:false},{t:'Edad promedio de los atletas.', c:false}],
+      explain:'Impacto × Probabilidad × Factibilidad permite una priorización más fina que la frecuencia bruta.'},
+  ]},
+
+{id:'m7', kind:'lesson', title:'Método 6 · AMFE', short:'7 · M6 AMFE',
+  lesson:`
+    <h2>Prevenir que el problema falle de nuevo</h2>
+    <p>El AMFE (Análisis de Modos de Falla y Efectos) anticipa con <b>6-12 meses de antelación</b> los modos de fallo que podrían afectar el rendimiento competitivo, mediante el cálculo del Índice de Prioridad de Riesgo:</p>
+    <div class="callout gold"><b>IPR = Severidad × Ocurrencia × Detección</b> (cada factor en escala 1-10)</div>
+    <table class="minitable">
+      <tr><th>IPR</th><th>Clasificación</th></tr>
+      <tr><td>≥ 200</td><td>Muy Alto — acción preventiva inmediata</td></tr>
+      <tr><td>100-199</td><td>Alto</td></tr>
+      <tr><td>50-99</td><td>Medio</td></tr>
+      <tr><td>&lt; 50</td><td>Bajo</td></tr>
+    </table>
+    <div class="callout"><b>Caso real (taekwondo):</b> descontrol emocional en semifinal alcanza <b>IPR 378</b>, el más alto detectado — muy por encima del umbral de riesgo Muy Alto.</div>
+    <p>El AMFE prioriza por <b>riesgo real</b>, a diferencia del Pareto que prioriza por frecuencia: una causa poco frecuente pero catastrófica puede tener prioridad AMFE alta aunque su Pareto sea bajo.</p>
+  `,
+  quiz:[
+    {q:'¿Cómo se calcula el IPR en el AMFE?',
+      opts:[{t:'Severidad + Ocurrencia + Detección.', c:false},{t:'Severidad × Ocurrencia × Detección.', c:true},{t:'Severidad ÷ Ocurrencia.', c:false},{t:'Solo se usa la Severidad.', c:false}],
+      explain:'El IPR es el producto de los tres factores, cada uno evaluado en una escala de 1 a 10.'},
+    {q:'¿A partir de qué valor de IPR se clasifica un riesgo como "Muy Alto"?',
+      opts:[{t:'≥ 50', c:false},{t:'≥ 100', c:false},{t:'≥ 200', c:true},{t:'≥ 500', c:false}],
+      explain:'IPR ≥ 200 exige acción preventiva inmediata según la tabla de clasificación del manual.'},
+    {q:'¿En qué se diferencia el AMFE del Pareto?',
+      opts:[
+        {t:'Son exactamente el mismo método con otro nombre.', c:false},
+        {t:'El Pareto prioriza por frecuencia/impacto; el AMFE prioriza por riesgo (severidad × ocurrencia × detección).', c:true},
+        {t:'El AMFE solo aplica a deportes de combate.', c:false},
+        {t:'El Pareto se usa después del AMFE, nunca antes.', c:false},
+      ], explain:'Ambos son métodos de priorización, pero con criterios distintos: frecuencia de la causa vs. riesgo real de que el fallo ocurra y pase inadvertido.'},
+  ]},
+
+{id:'m8', kind:'lesson', title:'Método 7 · 5 Porqués', short:'8 · M7 5 Porqués',
+  lesson:`
+    <h2>De la causa general a la causa raíz operativa</h2>
+    <p>El Método de los 5 Porqués convierte las causas generales identificadas por el Ishikawa y priorizadas por el Pareto/AMFE en <b>causas raíz operativas</b>: decisiones concretas que la institución puede tomar. Se pregunta "¿por qué?" cinco veces sucesivas, usando cada respuesta como la siguiente pregunta.</p>
+    <div class="callout"><b>Diferencia clave:</b> una causa general ("falta motivación") no es accionable; una causa raíz operativa ("no existe un protocolo institucional de X") sí lo es, porque señala una decisión concreta que se puede tomar.</div>
+    <h2>Patrón frecuente</h2>
+    <p>El manual documenta que, en la mayoría de los casos analizados, el quinto porqué llega a la <b>ausencia de un protocolo institucional</b> o de <b>formación del personal</b> para diseñarlo o aplicarlo — lo cual convierte a la formación continua del cuerpo técnico en una de las intervenciones de mayor retorno de largo plazo.</p>
+    <h2>Cuándo detenerse</h2>
+    <p>No es obligatorio llegar exactamente a la quinta pregunta: se detiene la cadena en el momento en que la respuesta ya es una decisión institucional concreta y accionable, aunque eso ocurra en la tercera o cuarta pregunta.</p>
+  `,
+  quiz:[
+    {q:'¿Qué distingue a una "causa raíz operativa" de una causa general?',
+      opts:[
+        {t:'La causa raíz operativa es siempre más corta de escribir.', c:false},
+        {t:'La causa raíz operativa señala una decisión institucional concreta y accionable.', c:true},
+        {t:'No hay ninguna diferencia real entre ambas.', c:false},
+        {t:'La causa general siempre es más precisa.', c:false},
+      ], explain:'"Falta motivación" no orienta ninguna acción concreta; "no existe protocolo institucional de X" sí lo hace.'},
+    {q:'Según el manual, ¿a qué tipo de causa raíz llega con más frecuencia el quinto porqué?',
+      opts:[
+        {t:'A la mala suerte o factores climáticos.', c:false},
+        {t:'A la ausencia de un protocolo institucional o de formación del personal.', c:true},
+        {t:'Siempre al presupuesto insuficiente.', c:false},
+        {t:'A características genéticas del atleta.', c:false},
+      ], explain:'Este patrón es lo que hace que la formación continua del cuerpo técnico sea, según el manual, la intervención de mayor ROI de largo plazo.'},
+    {q:'¿Es obligatorio llegar exactamente a la quinta pregunta en todos los casos?',
+      opts:[
+        {t:'Sí, siempre deben ser exactamente 5 preguntas.', c:false},
+        {t:'No: se detiene quien pregunta cuando la respuesta ya es una decisión institucional accionable.', c:true},
+        {t:'No, el mínimo obligatorio son 10 preguntas.', c:false},
+        {t:'Depende únicamente del presupuesto del deporte.', c:false},
+      ], explain:'El número "5" es orientativo; lo que importa es llegar a una causa verdaderamente accionable.'},
+  ]},
+
+{id:'m9', kind:'lesson', title:'Método 8 · Matrices de Decisión', short:'9 · M8 Decisión',
+  lesson:`
+    <h2>Decidir con evidencia, no con intuición</h2>
+    <p>Las Matrices de Decisión seleccionan el tipo correcto de intervención mediante criterios que integran impacto, alcance sistémico, comparación con un <b>referente externo</b> (benchmarking) y análisis de riesgo.</p>
+    <h2>Criterios típicos de la matriz</h2>
+    <table class="minitable">
+      <tr><th>Criterio</th><th>Efecto en la decisión</th></tr>
+      <tr><td>Impacto en la conversión</td><td>Suma a favor de intervenir más profundo</td></tr>
+      <tr><td>Alcance sistémico</td><td>Suma a favor</td></tr>
+      <tr><td>Viabilidad de implementación</td><td>Suma a favor</td></tr>
+      <tr><td>Costo estimado</td><td>Resta (favorece intervención más simple)</td></tr>
+      <tr><td>Tiempo requerido</td><td>Resta</td></tr>
+      <tr><td>Riesgo de no ejecución</td><td>Resta</td></tr>
+    </table>
+    <div class="callout gold"><b>Benchmarking:</b> comparar el indicador propio contra un referente externo (por ejemplo, Jalisco) revela brechas que justifican objetivamente el tipo de intervención — no es una opinión, es evidencia comparativa.</div>
+    <h2>Gobernanza de la decisión</h2>
+    <p>El manual también define <b>quién tiene autoridad</b> para decidir cada tipo de intervención: decisiones Kaizen pueden autorizarse a nivel técnico; Kaikaku requiere aprobación del Comité de Alto Rendimiento; Kakushin requiere Auditoría Anual y Dirección General.</p>
+  `,
+  quiz:[
+    {q:'¿Qué papel juega el "benchmarking" en la Matriz de Decisión?',
+      opts:[
+        {t:'Ninguno, es solo un adorno del reporte.', c:false},
+        {t:'Compara el indicador propio contra un referente externo para justificar objetivamente la intervención.', c:true},
+        {t:'Sirve únicamente para fijar el presupuesto de viáticos.', c:false},
+        {t:'Reemplaza la necesidad de un diagnóstico previo.', c:false},
+      ], explain:'El benchmarking aporta evidencia comparativa objetiva, no una opinión subjetiva sobre qué tan grave es el problema.'},
+    {q:'En la matriz de decisión, ¿qué efecto tiene un "Costo estimado" alto sobre el puntaje de la intervención?',
+      opts:[
+        {t:'Suma a favor de una intervención más profunda.', c:false},
+        {t:'Resta, favoreciendo una intervención más simple.', c:true},
+        {t:'No tiene ningún efecto en la decisión.', c:false},
+        {t:'Determina automáticamente que se aplique Kakushin.', c:false},
+      ], explain:'Costo, Tiempo y Riesgo de no ejecución restan en el puntaje neto, contrapesando a Impacto, Alcance y Viabilidad que suman.'},
+    {q:'Según la gobernanza descrita en el manual, ¿qué instancia debe aprobar una decisión Kaikaku?',
+      opts:[
+        {t:'Cualquier entrenador de campo, sin más trámite.', c:false},
+        {t:'El Comité de Alto Rendimiento.', c:true},
+        {t:'No requiere ninguna aprobación institucional.', c:false},
+        {t:'Solo el psicólogo deportivo del equipo.', c:false},
+      ], explain:'El manual distingue niveles de autoridad: Kaizen a nivel técnico, Kaikaku vía Comité de Alto Rendimiento, y Kakushin vía Auditoría Anual/Dirección General.'},
+  ]},
+
+{id:'m10', kind:'lesson', title:'Método 9 · Ejecución (K-K-K)', short:'10 · M9 Ejecución',
+  lesson:`
+    <h2>Ejecutar el cambio en el nivel correcto</h2>
+    <p>Este método implementa el plan de intervención de forma secuencial y verificable, distribuyendo las acciones entre los tres niveles de transformación:</p>
+    <table class="minitable">
+      <tr><th>Nivel</th><th>Naturaleza</th><th>Horizonte típico</th></tr>
+      <tr><td>Kaizen</td><td>Mejora incremental, reversible si el sistema vuelve a condiciones anteriores</td><td>Semanas a meses</td></tr>
+      <tr><td>Kaikaku</td><td>Rediseño estructural (metodología AS-IS → TO-BE)</td><td>6-18 meses</td></tr>
+      <tr><td>Kakushin</td><td>Innovación disruptiva del paradigma de gestión</td><td>12-36 meses</td></tr>
+    </table>
+    <div class="callout"><b>Solo Kaikaku y Kakushin producen mejoras sostenibles sin esfuerzo continuo</b>, porque alteran la estructura del proceso o el paradigma de gestión. Las mejoras de Kaizen son reversibles si el sistema regresa a sus condiciones anteriores.</div>
+    <h2>Cada plan de acción requiere</h2>
+    <ul>
+      <li>Actividad concreta y verificable</li>
+      <li>Responsable único (no un equipo difuso)</li>
+      <li>Fecha específica</li>
+      <li>Indicador de éxito objetivo</li>
+    </ul>
+    <p>Una actividad sin estos cuatro elementos no es un plan de acción: es una intención.</p>
+  `,
+  quiz:[
+    {q:'¿Cuál de los tres niveles de cambio produce mejoras que se sostienen sin esfuerzo continuo?',
+      opts:[{t:'Solo Kaizen.', c:false},{t:'Kaikaku y Kakushin, porque alteran la estructura del proceso o el paradigma.', c:true},{t:'Ninguno de los tres.', c:false},{t:'Solo el CAPA.', c:false}],
+      explain:'Las mejoras de Kaizen son reversibles si el sistema vuelve a sus condiciones anteriores; solo Kaikaku y Kakushin cambian la estructura misma.'},
+    {q:'¿Cuáles son los cuatro elementos que exige una actividad de plan de acción bien formulada?',
+      opts:[
+        {t:'Actividad concreta, responsable único, fecha específica e indicador de éxito.', c:true},
+        {t:'Solo una descripción general de lo que se quiere lograr.', c:false},
+        {t:'El nombre del deporte y la categoría, nada más.', c:false},
+        {t:'Una lista de buenas intenciones del equipo técnico.', c:false},
+      ], explain:'Sin estos cuatro elementos, según el manual, no es un plan de acción sino una intención.'},
+    {q:'¿Cuál es el horizonte temporal típico de una intervención Kakushin?',
+      opts:[{t:'Días.', c:false},{t:'Semanas a meses.', c:false},{t:'12 a 36 meses.', c:true},{t:'Nunca produce resultados medibles.', c:false}],
+      explain:'La innovación disruptiva de paradigma requiere un horizonte largo; el manual cita el caso de Australia (17 años) como referencia de inversión sostenida.'},
+  ]},
+
+{id:'m11', kind:'lesson', title:'Método 10 · CAPA', short:'11 · M10 CAPA',
+  lesson:`
+    <h2>Documentar la solución para que se sostenga</h2>
+    <p>El CAPA (Acciones Correctivas y Preventivas) garantiza que cada acción se ejecute conforme a lo planeado, se verifique con indicadores objetivos y se documente como <b>aprendizaje institucional acumulado</b>.</p>
+    <h2>Semáforo operacional</h2>
+    <table class="minitable">
+      <tr><th>Estado</th><th>Significado</th></tr>
+      <tr><td>🟢 Verde</td><td>Acción cerrada con evidencia verificada</td></tr>
+      <tr><td>🟡 Amarillo</td><td>En proceso, dentro del plazo</td></tr>
+      <tr><td>🔴 Rojo</td><td>Vencida o sin avance verificable</td></tr>
+    </table>
+    <h2>Reglas no negociables</h2>
+    <ul>
+      <li>Toda acción correctiva/preventiva tiene un responsable nominado (no un equipo difuso).</li>
+      <li>El cierre requiere <b>evidencia verificable</b>, no solo la palabra del responsable.</li>
+      <li>Cada CAPA cerrado documenta una <b>lección aprendida</b> institucional.</li>
+      <li>Enfoque <b>no punitivo</b>: un dato de salud, psicología o vulnerabilidad social no debe usarse para estigmatizar.</li>
+    </ul>
+    <div class="callout gold">El manual concluye: <b>"el CAPA es la diferencia entre el plan y el resultado."</b> La brecha entre un buen diagnóstico y la mejora real del rendimiento está casi siempre en la implementación, no en el análisis.</div>
+  `,
+  quiz:[
+    {q:'¿Qué se requiere para cerrar formalmente una acción CAPA?',
+      opts:[
+        {t:'Que el responsable lo reporte verbalmente como terminado.', c:false},
+        {t:'Que pase suficiente tiempo desde que se abrió.', c:false},
+        {t:'Evidencia verificable y una lección aprendida documentada.', c:true},
+        {t:'La autorización directa del atleta involucrado.', c:false},
+      ], explain:'El cierre de un CAPA riguroso exige verificación objetiva, no solo confianza en la palabra del responsable.'},
+    {q:'¿Qué significa el semáforo rojo en el sistema CAPA?',
+      opts:[{t:'La acción está cerrada exitosamente.', c:false},{t:'La acción está vencida o sin avance verificable.', c:true},{t:'La acción no era necesaria desde el inicio.', c:false},{t:'La acción fue aprobada por Dirección General.', c:false}],
+      explain:'El rojo indica una acción que no avanza según lo planeado y requiere atención inmediata.'},
+    {q:'¿Qué principio ético señala el manual sobre datos sensibles (salud, psicología) dentro del CAPA?',
+      opts:[
+        {t:'Pueden usarse libremente para evaluar el desempeño del atleta.', c:false},
+        {t:'Deben tener un uso no punitivo: no estigmatizar ni castigar con esa información.', c:true},
+        {t:'Deben compartirse con todo el staff sin restricción.', c:false},
+        {t:'No es necesario el consentimiento del atleta para recabarlos.', c:false},
+      ], explain:'El manual es explícito: un dato de salud, psicología, maduración o vulnerabilidad social no debe utilizarse para estigmatizar o castigar.'},
+  ]},
+
+{id:'m12', kind:'lesson', title:'Integración del Sistema', short:'12 · Integración',
+  lesson:`
+    <h2>El valor está en la cadena, no en un método aislado</h2>
+    <p>El valor central del SIASPD no reside en ninguno de sus diez métodos individuales, sino en su <b>arquitectura secuencial</b>: cada método produce un output que es exactamente el input del siguiente, generando un flujo que progresa de la descripción hacia la comprensión, de la comprensión hacia la decisión, y de la decisión hacia la acción verificable.</p>
+    <h2>Seis errores frecuentes de aplicación</h2>
+    <table class="minitable">
+      <tr><th>Error</th><th>Consecuencia</th></tr>
+      <tr><td>Saltarse la Desagregación</td><td>Intervenciones universales sobre problemas localizados</td></tr>
+      <tr><td>Detener el análisis en el Ishikawa</td><td>Dispersión de recursos sobre 15 causas en vez de 3</td></tr>
+      <tr><td>Confundir sistémico con generacional</td><td>Kaizen donde se necesita Kaikaku; sin mejora real</td></tr>
+      <tr><td>Aplicar Kaizen a un problema sistémico</td><td>Ilusión de actividad sin cambio real</td></tr>
+      <tr><td>CAPA sin actualización semanal</td><td>Acciones que se ejecutan parcialmente o no se ejecutan</td></tr>
+      <tr><td>Kakushin sin diagnóstico previo</td><td>Inversión en soluciones para problemas que no son los reales</td></tr>
+    </table>
+    <h2>Las "puertas de decisión"</h2>
+    <p>El sistema define 7 puertas (G0 a G6) que exigen evidencia mínima y una decisión explícita antes de avanzar al siguiente método, evitando que el equipo técnico avance por inercia sin fundamento.</p>
+  `,
+  quiz:[
+    {q:'¿Dónde reside, según el manual, el valor central del SIASPD?',
+      opts:[
+        {t:'En el Método 6 (AMFE), el más sofisticado técnicamente.', c:false},
+        {t:'En la arquitectura secuencial: cada output es el input exacto del siguiente método.', c:true},
+        {t:'Únicamente en el presupuesto asignado a cada deporte.', c:false},
+        {t:'En aplicar cada método de forma aislada, según convenga.', c:false},
+      ], explain:'Aplicar los métodos de forma aislada produce diagnósticos parciales; es la cadena completa la que transforma datos en cambio institucional sostenido.'},
+    {q:'¿Cuál es la consecuencia de "detener el análisis en el Ishikawa" sin pasar al Pareto?',
+      opts:[
+        {t:'Ninguna, el Ishikawa es suficiente por sí solo.', c:false},
+        {t:'Dispersión de recursos sobre muchas causas en lugar de concentrarse en las 3-4 vitales.', c:true},
+        {t:'Se activa automáticamente el Kakushin.', c:false},
+        {t:'El CAPA se cierra antes de tiempo.', c:false},
+      ], explain:'Sin el Pareto, todas las causas identificadas reciben la misma atención, diluyendo el impacto de la intervención.'},
+    {q:'¿Qué función cumplen las "puertas de decisión" (G0-G6)?',
+      opts:[
+        {t:'Sirven solo como checklist decorativo sin efecto real.', c:false},
+        {t:'Exigen evidencia mínima y una decisión explícita antes de avanzar al siguiente método.', c:true},
+        {t:'Reemplazan por completo a los 10 métodos.', c:false},
+        {t:'Solo aplican al Método 10 (CAPA).', c:false},
+      ], explain:'Las puertas evitan que el equipo avance de un método al siguiente por inercia, sin fundamento suficiente.'},
+  ]},
+
+{id:'m13', kind:'lesson', title:'Aplicaciones, Ética y Cierre', short:'13 · Cierre',
+  lesson:`
+    <h2>El sistema se transfiere más allá del alto rendimiento</h2>
+    <p>El SIASPD se ha aplicado con éxito a programas comunitarios (adultos mayores), contextos clínicos (rehabilitación deportiva, Return To Performance) y distintas familias deportivas (combate, conjunto, apreciación/juzgamiento, precisión), adaptando indicadores y riesgos sin alterar el núcleo metodológico.</p>
+    <h2>Ética, datos y salvaguardas del atleta</h2>
+    <ul>
+      <li><b>Finalidad y minimización:</b> recolectar solo los datos necesarios para un propósito definido.</li>
+      <li><b>Consentimiento informado</b> del atleta (y tutores, cuando corresponde).</li>
+      <li><b>Acceso por funciones:</b> no todo el staff necesita el mismo nivel de detalle.</li>
+      <li><b>Uso no punitivo</b> de datos sensibles (salud, psicología, maduración).</li>
+      <li><b>Revisión humana obligatoria:</b> ningún algoritmo o semáforo decide solo becas, exclusiones o retornos deportivos.</li>
+      <li><b>Derecho de revisión</b> ante cualquier decisión de alto impacto.</li>
+    </ul>
+    <h2>Conclusión del manual</h2>
+    <div class="callout gold">"El talento de los atletas del INDE ya existe; lo que falta es el sistema que lo convierte en oro." El SIASPD es ese sistema — su implementación depende ahora de la decisión y el sostenimiento institucional.</div>
+    <p>Con esto cierra el contenido del curso. A continuación, el <b>examen final</b> integra preguntas de los 10 métodos y los conceptos transversales del sistema.</p>
+  `,
+  quiz:[
+    {q:'¿Qué principio ético exige que ningún algoritmo o semáforo decida por sí solo una beca, exclusión o retorno deportivo?',
+      opts:[{t:'Finalidad y minimización.', c:false},{t:'Revisión humana obligatoria.', c:true},{t:'Acceso por funciones.', c:false},{t:'Uso no punitivo.', c:false}],
+      explain:'Toda decisión de alto impacto debe ser explicable, documentada y revisada por una persona o comité competente, nunca automatizada por completo.'},
+    {q:'¿En qué contexto clínico se ha aplicado el SIASPD, redefiniendo el "problema de conversión"?',
+      opts:[
+        {t:'En la rehabilitación deportiva, como tasa de Return To Performance (RTP).', c:true},
+        {t:'Únicamente en cirugías estéticas.', c:false},
+        {t:'El sistema no tiene aplicación clínica alguna.', c:false},
+        {t:'Solo en nutrición deportiva.', c:false},
+      ], explain:'En rehabilitación, la "conversión" se redefine como la proporción de atletas lesionados que logran retornar a su rendimiento previo.'},
+    {q:'Según la conclusión del manual, ¿qué le falta a los atletas del INDE para convertir su talento en medallas?',
+      opts:[
+        {t:'Talento — el manual afirma que no existe suficiente talento.', c:false},
+        {t:'El sistema que convierte ese talento en resultados de forma consistente.', c:true},
+        {t:'Instalaciones deportivas exclusivamente.', c:false},
+        {t:'Mayor número de competencias internacionales.', c:false},
+      ], explain:'La tesis central del manual es que el talento ya existe; lo que falta es el sistema metodológico que lo convierte en resultados.'},
+  ]},
+
+{id:'final', kind:'exam', title:'Examen Final', short:'Examen Final',
+  quiz:[
+    {q:'¿Cuál es la secuencia correcta de los primeros tres métodos del SIASPD?',
+      opts:[{t:'Ishikawa → Pareto → AMFE', c:false},{t:'Desagregación → Cohortes → Trayectorias', c:true},{t:'CAPA → Decisión → Ejecución', c:false},{t:'AMFE → 5 Porqués → Decisión', c:false}],
+      explain:'La cadena inicia con los tres métodos descriptivos: ubicar el problema, determinar si es sistémico, y localizar el cuello de botella.'},
+    {q:'¿Qué modelo internacional aporta el marco de 9 pilares de política deportiva de éxito usado en el manual?',
+      opts:[{t:'LTAD', c:false},{t:'FTEM', c:false},{t:'SPLISS', c:true},{t:'PDCA', c:false}],
+      explain:'SPLISS (Sports Policy factors Leading to International Sporting Success) es el marco de 9 pilares citado como referencia.'},
+    {q:'Si un problema se repite en 3 cohortes consecutivas, ¿qué tipo de intervención sugiere el manual?',
+      opts:[{t:'Kaizen únicamente.', c:false},{t:'Kaikaku (rediseño estructural).', c:true},{t:'Ninguna, solo monitoreo.', c:false},{t:'Cancelar el programa.', c:false}],
+      explain:'Un patrón sistémico confirmado con 3+ cohortes apunta hacia un rediseño estructural, no una mejora incremental.'},
+    {q:'¿Qué fórmula define el IPR en el AMFE?',
+      opts:[{t:'Severidad + Ocurrencia + Detección.', c:false},{t:'Severidad × Ocurrencia × Detección.', c:true},{t:'Impacto × Probabilidad.', c:false},{t:'Costo ÷ Tiempo.', c:false}],
+      explain:'IPR = Severidad × Ocurrencia × Detección, cada una en escala 1-10.'},
+    {q:'¿Qué es una "causa raíz operativa" en el Método de los 5 Porqués?',
+      opts:[
+        {t:'Cualquier causa mencionada por el entrenador.', c:false},
+        {t:'Una decisión institucional concreta y accionable, no una generalización.', c:true},
+        {t:'Siempre la primera respuesta a la primera pregunta.', c:false},
+        {t:'Un factor climático o biológico no controlable.', c:false},
+      ], explain:'La causa raíz operativa debe señalar algo que la institución puede decidir y ejecutar directamente.'},
+    {q:'En una Matriz de Decisión, ¿qué efecto tienen el Costo, el Tiempo y el Riesgo de no ejecución sobre el puntaje neto?',
+      opts:[{t:'Suman a favor de intervenciones más profundas.', c:false},{t:'Restan, favoreciendo intervenciones más simples y viables.', c:true},{t:'No afectan el resultado final.', c:false},{t:'Determinan automáticamente el presupuesto anual.', c:false}],
+      explain:'Impacto, Alcance y Viabilidad suman; Costo, Tiempo y Riesgo restan en el balance de la decisión.'},
+    {q:'¿Cuáles son los cuatro elementos obligatorios de una actividad de Plan de Acción bien formulada?',
+      opts:[
+        {t:'Actividad concreta, responsable único, fecha específica e indicador de éxito.', c:true},
+        {t:'Solo una descripción general y un plazo aproximado.', c:false},
+        {t:'El nombre del deporte y el presupuesto total.', c:false},
+        {t:'Una lista de buenas intenciones sin fecha.', c:false},
+      ], explain:'Sin estos cuatro elementos, según el manual, es una intención, no un plan de acción.'},
+    {q:'¿Qué requiere el cierre formal de una acción CAPA?',
+      opts:[{t:'Solo el paso del tiempo planeado.', c:false},{t:'Evidencia verificable y una lección aprendida documentada.', c:true},{t:'La opinión positiva del entrenador en jefe.', c:false},{t:'Nada, los CAPA se cierran automáticamente.', c:false}],
+      explain:'El CAPA exige verificación objetiva del resultado, no solo el cumplimiento del plazo.'},
+    {q:'¿Cuál es el error de aplicación más citado por el manual al iniciar un diagnóstico?',
+      opts:[
+        {t:'Aplicar demasiadas encuestas a los atletas.', c:false},
+        {t:'Saltarse la Desagregación e ir directo a identificar causas.', c:true},
+        {t:'Usar demasiados colores en los reportes.', c:false},
+        {t:'Empezar por el CAPA antes que por el Ishikawa.', c:false},
+      ], explain:'Ir directo a las causas sin saber en qué segmento está el problema produce intervenciones universales sobre problemas localizados.'},
+    {q:'Según la conclusión del manual, ¿qué papel juega la formación continua del cuerpo técnico?',
+      opts:[
+        {t:'Es un gasto prescindible si el presupuesto es limitado.', c:false},
+        {t:'Es la intervención de mayor retorno de largo plazo, ya que suele ser la causa raíz de primer nivel.', c:true},
+        {t:'Solo es relevante para el personal médico.', c:false},
+        {t:'No tiene relación con los resultados competitivos.', c:false},
+      ], explain:'El quinto porqué de muchos problemas institucionales llega a la falta de formación para diseñar o aplicar protocolos; invertir ahí tiene el mayor ROI de largo plazo.'},
+  ]},
+
+];
+
+console.log('Curso cargado:', COURSE.length, 'módulos');
+
+/* ============================================================
+   ESTADO DEL CURSO
+   ============================================================ */
+let currentIdx = 0;
+const moduleState = COURSE.map(()=>({unlocked:false, completed:false, score:0, total:0}));
+moduleState[0].unlocked = true;
+moduleState[1].unlocked = true; // bienvenida no tiene quiz, módulo 1 abre directo
+let learnerName = '';
+
+const PASS_RATIO = 0.6; // 60% para aprobar un módulo
+
+function overallProgress(){
+  const done = moduleState.filter(m=>m.completed).length;
+  return Math.round((done / COURSE.length) * 100);
+}
+
+function updateHeaderProgress(){
+  const hp = document.getElementById('hdrProgress');
+  hp.style.display = currentIdx===0 ? 'none' : 'flex';
+  const pct = overallProgress();
+  document.getElementById('barFill').style.width = pct + '%';
+  document.getElementById('pctVal').textContent = pct + '%';
+}
+
+/* ---------------- SIDEBAR ---------------- */
+function renderSidebar(){
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML = '';
+  COURSE.forEach((mod, i)=>{
+    const item = document.createElement('div');
+    const st = moduleState[i];
+    let iconCls = 'side-icon';
+    let iconTxt = (i===0) ? '★' : (mod.kind==='exam' ? 'E' : i);
+    if(st.completed) iconCls += ' done';
+    else if(i===currentIdx) iconCls += ' current';
+    else if(!st.unlocked) iconCls += ' locked';
+
+    item.className = 'side-item' + (i===currentIdx ? ' active' : '') + (!st.unlocked ? ' locked' : '');
+    item.innerHTML = `<span class="${iconCls}">${st.completed ? '✓' : iconTxt}</span><span class="side-label">${mod.short}</span>`;
+    if(st.unlocked){
+      item.addEventListener('click', ()=>{ currentIdx = i; renderCurrent(); });
+    }
+    sb.appendChild(item);
+  });
+}
+
+/* ---------------- RENDER: BIENVENIDA ---------------- */
+function renderWelcome(){
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="hero-panel">
+      <h1>Curso SIASPD / MAED 2026</h1>
+      <p>Capacitación oficial del cuerpo técnico del INDE Nuevo León en el Sistema Integral de Análisis y Solución de Problemas Deportivos. 14 módulos breves, cada uno con su evaluación, y un examen final integrador.</p>
+    </div>
+    <p class="lede">Este curso sigue exactamente la cadena de los 10 métodos del manual: cada módulo se desbloquea al aprobar el anterior (60% mínimo en la evaluación), igual que la metodología exige avanzar en orden sin saltarse pasos.</p>
+    <div class="module-grid">
+      ${COURSE.slice(1,-1).map(m=>`<div class="module-chip"><b>${m.short.split(' · ')[0]}</b> ${m.title}</div>`).join('')}
+      <div class="module-chip"><b>Final</b> Examen integrador + constancia</div>
+    </div>
+    <div class="actions-row">
+      <div></div>
+      <button class="btn lane" id="startBtn">Comenzar el curso ▶</button>
+    </div>
+  `;
+  document.getElementById('startBtn').addEventListener('click', ()=>{
+    currentIdx = 1; renderCurrent();
+  });
+}
+
+/* ---------------- RENDER: LECCIÓN + QUIZ ---------------- */
+function renderLessonModule(){
+  const mod = COURSE[currentIdx];
+  const c = document.getElementById('content');
+  const isExam = mod.kind === 'exam';
+
+  c.innerHTML = `
+    <p class="eyebrow">${isExam ? 'Evaluación integradora' : mod.short}</p>
+    <h1 class="page-title">${mod.title}</h1>
+    ${!isExam ? `<div class="lesson">${mod.lesson}</div>` : `<p class="lede">Este examen integra preguntas de los 10 métodos y los conceptos transversales del sistema. Necesitas 60% para aprobar y obtener tu constancia.</p>`}
+
+    <div class="quiz-section">
+      <div class="quiz-header">${isExam ? 'Examen Final' : 'Evaluación del módulo'}</div>
+      <div class="quiz-sub">${mod.quiz.length} pregunta${mod.quiz.length>1?'s':''} · necesitas ${Math.round(PASS_RATIO*100)}% para continuar</div>
+      <div id="quizWrap"></div>
+      <div id="quizResult"></div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn ghost" id="prevBtn">◀ Anterior</button>
+      <button class="btn lane" id="nextModBtn" style="display:none;">${isExam ? 'Ver constancia ▶' : 'Siguiente módulo ▶'}</button>
+    </div>
+  `;
+
+  const quizWrap = document.getElementById('quizWrap');
+  const answers = mod.quiz.map(()=>null);
+
+  mod.quiz.forEach((q, qi)=>{
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    card.innerHTML = `
+      <div class="qnum">Pregunta ${qi+1} de ${mod.quiz.length}</div>
+      <div class="qtext">${q.q}</div>
+      <div class="qopts" id="qopts-${qi}"></div>
+      <div class="qfeedback" id="qfb-${qi}"></div>
+    `;
+    quizWrap.appendChild(card);
+    const optsWrap = card.querySelector(`#qopts-${qi}`);
+    q.opts.forEach((opt, oi)=>{
+      const b = document.createElement('button');
+      b.className = 'qopt';
+      b.textContent = opt.t;
+      b.addEventListener('click', ()=>{
+        if(answers[qi] !== null) return;
+        answers[qi] = oi;
+        const allOpts = optsWrap.querySelectorAll('.qopt');
+        allOpts.forEach((el,ei)=>{
+          el.disabled = true;
+          if(ei===oi) el.classList.add(opt.c ? 'correct' : 'wrong');
+          else if(q.opts[ei].c) el.classList.add('correct');
+          else el.classList.add('faded');
+        });
+        const fb = document.getElementById(`qfb-${qi}`);
+        fb.className = 'qfeedback show ' + (opt.c ? 'ok' : 'bad');
+        fb.textContent = (opt.c ? '✓ Correcto. ' : '✗ No es correcto. ') + q.explain;
+        checkQuizComplete();
+      });
+      optsWrap.appendChild(b);
+    });
+  });
+
+  function checkQuizComplete(){
+    if(answers.every(a=>a!==null)){
+      const correctCount = answers.filter((a,qi)=>mod.quiz[qi].opts[a].c).length;
+      const ratio = correctCount / mod.quiz.length;
+      const passed = ratio >= PASS_RATIO;
+      const st = moduleState[currentIdx];
+      st.score = correctCount; st.total = mod.quiz.length; st.completed = passed;
+      if(passed && currentIdx+1 < COURSE.length) moduleState[currentIdx+1].unlocked = true;
+
+      const resDiv = document.getElementById('quizResult');
+      resDiv.innerHTML = `
+        <div class="quiz-result ${passed?'pass':''}">
+          <div class="qr-score">${correctCount}<span>/${mod.quiz.length} correctas</span></div>
+          <div class="qr-msg">${passed ? '¡Aprobado! Ya puedes continuar al siguiente módulo.' : 'No alcanzaste el 60% mínimo. Revisa la lección y vuelve a intentar el módulo.'}</div>
+        </div>`;
+      const nextBtn = document.getElementById('nextModBtn');
+      if(passed){
+        nextBtn.style.display = 'inline-block';
+      } else {
+        const retryBtn = document.createElement('button');
+        retryBtn.className = 'btn ghost';
+        retryBtn.textContent = 'Reintentar módulo';
+        retryBtn.style.marginTop = '10px';
+        retryBtn.addEventListener('click', ()=> renderCurrent());
+        resDiv.appendChild(retryBtn);
+      }
+      renderSidebar();
+      updateHeaderProgress();
+    }
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', ()=>{
+    if(currentIdx>0){ currentIdx--; renderCurrent(); }
+  });
+  const nextBtn = document.getElementById('nextModBtn');
+  nextBtn.addEventListener('click', ()=>{
+    if(isExam){ currentIdx = COURSE.length; renderCurrent(); }
+    else { currentIdx++; renderCurrent(); }
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------------- RENDER: CONSTANCIA ---------------- */
+function renderCertificate(){
+  const c = document.getElementById('content');
+  const examState = moduleState[moduleState.length-1];
+  const totalCorrect = moduleState.reduce((s,m)=>s+m.score,0);
+  const totalQ = moduleState.reduce((s,m)=>s+m.total,0);
+  const overallPct = totalQ ? Math.round((totalCorrect/totalQ)*100) : 0;
+
+  c.innerHTML = `
+    <p class="eyebrow">Curso completado</p>
+    <h1 class="page-title">Genera tu constancia</h1>
+    <p class="lede">Escribe tu nombre completo tal como debe aparecer en la constancia, luego genera el documento e imprímelo o guárdalo como PDF (Ctrl+P).</p>
+    <div class="actions-row" style="margin-bottom:26px;">
+      <input type="text" id="nameInput" placeholder="Nombre completo" value="${learnerName}"
+        style="flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:7px;font-family:var(--font-body);font-size:14px;">
+      <button class="btn lane" id="genBtn">Generar constancia</button>
+    </div>
+    <div id="certWrap"></div>
+  `;
+  document.getElementById('genBtn').addEventListener('click', ()=>{
+    learnerName = document.getElementById('nameInput').value.trim() || 'Participante';
+    document.getElementById('certWrap').innerHTML = `
+      <div class="cert">
+        <div class="cert-eyebrow">INDE Nuevo León · Dirección de Alto Rendimiento</div>
+        <h2>Constancia de Capacitación</h2>
+        <div class="cert-name">${learnerName}</div>
+        <p class="cert-body">Completó satisfactoriamente el curso <b>SIASPD / MAED 2026</b> — Sistema Integral de Análisis y Solución de Problemas Deportivos, cubriendo los 10 métodos de la cadena metodológica y su examen final integrador.</p>
+        <div class="cert-score">Calificación global: ${overallPct}%</div>
+        <div class="cert-footer">
+          <div>Fecha: ${new Date().toLocaleDateString('es-MX', {year:'numeric', month:'long', day:'numeric'})}</div>
+          <div>Dirección de Alto Rendimiento</div>
+        </div>
+      </div>
+      <div class="actions-row" style="margin-top:20px;">
+        <button class="btn ghost" id="printBtn">🖨 Imprimir / Guardar como PDF</button>
+        <button class="btn ghost" id="restartBtn">Reiniciar curso</button>
+      </div>
+    `;
+    document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+    document.getElementById('restartBtn').addEventListener('click', restartCourse);
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function restartCourse(){
+  currentIdx = 0;
+  moduleState.forEach((m,i)=>{ m.unlocked = (i<=1); m.completed=false; m.score=0; m.total=0; });
+  renderCurrent();
+}
+
+/* ---------------- ROUTER ---------------- */
+function renderCurrent(){
+  renderSidebar();
+  updateHeaderProgress();
+  if(currentIdx >= COURSE.length){ renderCertificate(); return; }
+  const mod = COURSE[currentIdx];
+  if(mod.kind === 'welcome') renderWelcome();
+  else renderLessonModule();
+}
+
+renderCurrent();
+})();
+</script>
+</body>
+</html>
