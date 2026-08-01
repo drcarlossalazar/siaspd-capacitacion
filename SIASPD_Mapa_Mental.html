@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIASPD / MAED 2026 · Mapa Mental Navegable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0F2A4A; --navy-2:#173A63;
+  --paper:#EEF2F1; --card:#FFFFFF; --ink:#12202E; --ink-soft:#4C5C68; --line:#D9E0DD;
+  --lane:#C7362F; --gold:#C79A3B;
+  --font-display:'Oswald',"Arial Narrow",sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,sans-serif;
+  --font-mono:'Roboto Mono',"Consolas",monospace;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;font-family:var(--font-body);background:var(--paper);color:var(--ink);}
+
+header.topbar{
+  background:var(--navy);color:#fff;padding:14px 22px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  box-shadow:0 2px 14px rgba(0,0,0,.18);position:relative;z-index:20;
+}
+.brand{font-family:var(--font-display);font-weight:600;font-size:19px;display:flex;align-items:baseline;gap:8px;}
+.brand small{font-family:var(--font-body);font-weight:500;font-size:11.5px;color:#9FB3C8;letter-spacing:.05em;text-transform:uppercase;}
+.brand-tag{font-size:12px;color:#9FB3C8;}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.toolbar input[type=text]{
+  font-family:var(--font-body);font-size:13px;padding:7px 12px;border-radius:20px;border:1px solid #2C4D71;
+  background:rgba(255,255,255,.08);color:#fff;width:200px;
+}
+.toolbar input[type=text]::placeholder{color:#9FB3C8;}
+.toolbar button{
+  font-family:var(--font-body);font-weight:600;font-size:12.5px;
+  background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);
+  padding:7px 13px;border-radius:20px;cursor:pointer;transition:background .15s;
+}
+.toolbar button:hover{background:rgba(255,255,255,.22);}
+.toolbar button.primary{background:var(--lane);border-color:var(--lane);}
+
+.layout{display:flex;height:calc(100vh - 61px);}
+
+#mindmap{
+  flex:1 1 auto;overflow:auto;position:relative;background:
+    radial-gradient(circle, #E1E8E6 1px, transparent 1px) 0 0/22px 22px, var(--paper);
+}
+#mmInner{position:relative;padding:60px 80px;display:inline-block;min-width:100%;min-height:100%;}
+svg#connectors{position:absolute;top:0;left:0;pointer-events:none;z-index:0;}
+
+.tree-root-row{display:flex;align-items:center;position:relative;z-index:1;}
+.branches-col{display:flex;flex-direction:column;gap:16px;margin-left:70px;}
+.branch{display:flex;align-items:center;gap:46px;}
+.children-col{display:flex;flex-direction:column;gap:12px;}
+
+.node-card{
+  position:relative;z-index:1;
+  font-family:var(--font-body);cursor:pointer;user-select:none;
+  border-radius:10px;padding:10px 14px;
+  display:flex;align-items:center;gap:9px;
+  border:1.5px solid var(--line);background:#fff;
+  min-width:210px;max-width:250px;
+  box-shadow:0 1px 3px rgba(15,42,74,.06);
+  transition:box-shadow .15s, transform .1s, border-color .15s;
+}
+.node-card:hover{box-shadow:0 4px 14px rgba(15,42,74,.14);transform:translateY(-1px);}
+.node-card.selected{border-color:var(--navy);box-shadow:0 0 0 3px rgba(15,42,74,.15);}
+.node-card.dimmed{opacity:.28;}
+.node-card.root{
+  background:var(--navy);border-color:var(--navy);color:#fff;min-width:190px;
+  font-family:var(--font-display);font-size:15px;font-weight:600;justify-content:center;text-align:center;
+}
+.node-card .chev{
+  flex:0 0 auto;width:18px;height:18px;border-radius:50%;background:var(--paper);
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-soft);
+  transition:transform .15s;
+}
+.node-card.expanded .chev{transform:rotate(90deg);}
+.node-card .dot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;}
+.node-card .ttl{font-size:12.8px;font-weight:600;line-height:1.25;color:var(--ink);}
+.node-card.level1 .ttl{font-size:13.3px;}
+.node-card .num{
+  font-family:var(--font-mono);font-size:10px;font-weight:700;color:#fff;
+  background:var(--ink-soft);width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+}
+
+/* ---------- detail panel ---------- */
+#panel{
+  width:400px;flex:0 0 auto;background:#fff;border-left:1px solid var(--line);
+  overflow-y:auto;padding:26px 26px 60px 26px;
+}
+#panel .ph-empty{color:var(--ink-soft);font-size:14px;margin-top:40px;text-align:center;line-height:1.6;}
+#panel .crumb{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+#panel h2{font-family:var(--font-display);font-size:23px;font-weight:600;color:var(--navy);margin:0 0 14px 0;line-height:1.15;}
+#panel p.summary{font-size:14px;color:var(--ink);line-height:1.6;margin:0 0 16px 0;}
+#panel .metabox{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;
+}
+#panel .metabox .m{background:var(--paper);border-radius:8px;padding:9px 11px;}
+#panel .metabox .m .k{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--ink-soft);letter-spacing:.05em;}
+#panel .metabox .m .v{font-size:12.5px;font-weight:600;color:var(--navy);margin-top:2px;}
+#panel ul.bullets{margin:0 0 8px 0;padding-left:18px;}
+#panel ul.bullets li{font-size:13.3px;color:var(--ink);margin-bottom:9px;line-height:1.5;}
+#panel .example{
+  background:#FBF6E9;border-left:3px solid var(--gold);border-radius:6px;
+  padding:11px 13px;font-size:12.8px;color:var(--ink-soft);margin-top:14px;line-height:1.5;
+}
+#panel .example b{color:var(--navy);}
+#panel .children-list{margin-top:18px;}
+#panel .children-list h4{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;color:var(--ink-soft);letter-spacing:.06em;margin:0 0 8px 0;}
+#panel .child-chip{
+  display:block;font-size:12.5px;padding:7px 10px;border-radius:6px;background:var(--paper);
+  margin-bottom:6px;cursor:pointer;color:var(--ink);border:1px solid transparent;
+}
+#panel .child-chip:hover{border-color:var(--line);}
+
+@media (max-width:900px){
+  .layout{flex-direction:column;height:auto;}
+  #mindmap{height:60vh;}
+  #panel{width:100%;border-left:none;border-top:1px solid var(--line);}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <div class="brand">SIASPD <small>/ MAED 2026</small></div>
+    <div class="brand-tag">Mapa mental navegable del Manual — INDE Nuevo León · Dirección de Alto Rendimiento</div>
+  </div>
+  <div class="toolbar">
+    <input type="text" id="searchBox" placeholder="Buscar en el manual...">
+    <button id="expandAllBtn">Expandir todo</button>
+    <button id="collapseAllBtn">Colapsar todo</button>
+    <button id="resetBtn" class="primary">Vista inicial</button>
+  </div>
+</header>
+<div class="layout">
+  <div id="mindmap">
+    <div id="mmInner">
+      <svg id="connectors"></svg>
+      <div class="tree-root-row" id="treeRoot"></div>
+    </div>
+  </div>
+  <div id="panel">
+    <div class="ph-empty">Haga clic en cualquier nodo del mapa para ver su contenido aquí.<br><br>Use "Expandir todo" para ver la estructura completa, o navegue rama por rama.</div>
+  </div>
+</div>
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   DATOS: estructura completa del manual (paráfrasis original)
+   ============================================================ */
+const TREE = {
+  id:'root', title:'SIASPD / MAED 2026', root:true,
+  summary:'Sistema Integral de Análisis y Solución de Problemas Deportivos: manual institucional del INDE Nuevo León para diagnosticar, con evidencia, por qué los atletas no convierten su potencial en medallas — y para intervenir de forma priorizada, medible y sostenible.',
+  children:[
+
+    {id:'guia', title:'Guía Rápida', color:'#2E75B6',
+      summary:'Material de arranque rápido para quien necesita orientarse antes de leer el manual completo: un resumen ejecutivo, un filtro de 6 preguntas, una tabla de referencia de los 10 métodos y un árbol de decisión para saber por dónde empezar.',
+      children:[
+        {id:'resumen', title:'Resumen ejecutivo', color:'#2E75B6',
+          summary:'Síntesis del manual completo en una sola sección: qué es el SIASPD, cómo se articulan los diez métodos en una cadena diagnóstico-analítico-decisional-ejecutiva, y la meta central de incrementar la conversión finalista-medallista.'},
+        {id:'gir1', title:'GIR-1 · 6 preguntas de diagnóstico express', color:'#2E75B6',
+          summary:'Un filtro rápido de seis preguntas que permite a un entrenador o metodólogo identificar, sin aplicar la cadena completa, qué tipo de problema enfrenta y qué ruta metodológica conviene seguir primero.'},
+        {id:'gir2', title:'GIR-2 · Tabla de referencia rápida', color:'#2E75B6',
+          summary:'Ficha de consulta de una línea por método: qué pregunta responde, qué insumo necesita y qué producto entrega. Pensada para tenerla a la vista durante una sesión de trabajo, sin releer el manual completo.'},
+        {id:'arbol15', title:'1.5 · Árbol de diagnóstico rápido', color:'#2E75B6',
+          summary:'Diagrama de decisión que orienta con qué método conviene arrancar según la naturaleza del problema observado (¿es un problema de un solo atleta o de todo un grupo? ¿ya se sabe la causa o hay que investigarla?).'},
+      ]},
+
+    {id:'fundamentos', title:'Fundamentos (Cap. 1–3)', color:'#6B4FA0',
+      summary:'Los tres capítulos que sostienen el resto del manual: por qué se necesita un sistema integrado, en qué evidencia científica se apoya, y qué objetivos persigue cada uno de los diez métodos.',
+      children:[
+        {id:'intro', title:'1. Introducción', color:'#6B4FA0',
+          summary:'Diagnostica la coyuntura del deporte de alto rendimiento en México: la tasa media de conversión finalista-medallista se ubica en 11-14%, frente a 28-35% en países comparables como Brasil, Argentina o Colombia. Atribuye esta brecha a la fragmentación decisional entre departamentos (técnico, médico, psicológico, administrativo), no a diferencias biológicas en el talento disponible.',
+          bullets:[
+            'Tres pilares que justifican el sistema integrado: evidencia comparativa (proyecto SPLISS, 15 naciones), epistemología del cambio (taxonomía Kaizen-Kaikaku-Kakushin) y la brecha implementación-resultado (40-60% de decisiones técnicas nunca se ejecutan).',
+            'Principio rector: intervenir sin diagnosticar es una forma de negligencia metodológica que desperdicia recursos y erosiona la confianza del atleta.',
+            'Alcance: todos los deportes, ramas y categorías del INDE Nuevo León, más programas comunitarios para poblaciones especiales. El manual no sustituye el criterio del entrenador certificado; lo estructura.',
+          ]},
+        {id:'marco', title:'2. Marco Teórico y Fundamentos Científicos', color:'#6B4FA0',
+          summary:'Reúne los modelos internacionales que dan sustento científico a cada pieza del sistema, desde el desarrollo del talento hasta la gestión de riesgos y la psicología del rendimiento.',
+          bullets:[
+            'Modelos de desarrollo atlético: LTAD (desarrollo a largo plazo), FTEM (Fundación-Talento-Élite-Maestría) y SPLISS (9 pilares de política deportiva de éxito internacional).',
+            'Del determinismo al modelo ecológico del talento, y el efecto de la edad relativa como sesgo diagnóstico frecuente.',
+            'Gestión de la calidad: el ciclo PDCA, el pensamiento Lean y los fundamentos del AMFE aplicados al contexto deportivo.',
+            'Psicología del rendimiento: estrés competitivo, gestión del arousal y factores psicosociales de la deserción deportiva.',
+            'Aplicaciones en poblaciones especiales: fisiología del ejercicio en el adulto mayor y adaptación del sistema a programas comunitarios.',
+          ]},
+        {id:'objetivos', title:'3. Objetivos del Sistema', color:'#6B4FA0',
+          summary:'Objetivo general: establecer un protocolo institucional que permita optimizar la conversión de atletas hacia resultados competitivos sostenidos, mediante un sistema secuencial de diagnóstico, análisis, priorización, intervención y control.',
+          bullets:[
+            'Diez objetivos específicos, uno por método: desde ubicar con precisión el segmento del problema (Desagregación) hasta documentar el aprendizaje institucional acumulado (CAPA).',
+            'Rutas de aplicación proporcional: Ruta Rápida (24-48h, desviaciones localizadas), Ruta Estándar (2-6 semanas, problemas multifactoriales) y Ruta Crítica (activación inmediata ante riesgo de salud, seguridad o integridad).',
+          ]},
+      ]},
+
+    {id:'metodos', title:'Los 10 Métodos (Cap. 4–13)', color:'#C7362F',
+      summary:'El núcleo operativo del manual: diez herramientas metodológicas encadenadas, cada una produciendo el insumo exacto que necesita la siguiente, desde ubicar el problema hasta documentar la solución.',
+      children:[
+        {id:'m1', title:'M1 · Desagregación', color:'#C7362F', method:true,
+          pregunta:'¿Dónde está el problema?', input:'Datos de resultados por segmento', output:'Mapa de quiebres críticos',
+          summary:'Ubica con precisión el segmento —rama, categoría, disciplina, prueba, fase competitiva— donde se concentra el problema real, rompiendo la ilusión de un problema uniforme en todo el sistema.',
+          bullets:['Variables estándar de desagregación y criterios de calidad para no fragmentar en exceso el análisis.'],
+          example:'Programa comunitario de adultos mayores: localiza que la baja adherencia se concentra en el segmento de 75+ años y personas con condición crónica documentada.'},
+        {id:'m2', title:'M2 · Cohortes', color:'#C7362F', method:true,
+          pregunta:'¿Es sistémico o generacional?', input:'Historial longitudinal de cohortes', output:'Diagnóstico sistémico o generacional',
+          summary:'Determina si el problema del Método 1 se repite en el tiempo (sistémico → requiere Kaikaku) o es un caso aislado de una generación (generacional → admite Kaizen exploratorio), usando el criterio de tres cohortes consecutivas.',
+          example:'Caso Atletismo INDE: tres cohortes consecutivas por debajo del umbral confirman un patrón sistémico, no una generación débil.'},
+        {id:'m3', title:'M3 · Trayectorias', color:'#C7362F', method:true,
+          pregunta:'¿Dónde se rompe el proceso?', input:'Retención por fase competitiva', output:'Mapa del cuello de botella crítico',
+          summary:'Construye la matriz de retención y el embudo de conversión (real vs. esperado vs. referente externo) para localizar la etapa exacta donde se concentra la mayor pérdida de atletas.',
+          example:'Caso natación INDE Nuevo León: el 91% de la pérdida ocurre específicamente en el tramo semifinal→final, no de forma difusa en todo el proceso.'},
+        {id:'m4', title:'M4 · Ishikawa', color:'#C7362F', method:true,
+          pregunta:'¿Por qué sucede?', input:'Observación, entrevistas, datos cuali/cuantitativos', output:'Causas organizadas en 8 categorías',
+          summary:'Organiza las causas reales —no los síntomas— en 8 categorías: Entrenamiento, Entrenador, Desarrollo Biológico, Experiencia Competitiva, Entorno, Evaluación del Talento, Salud/Recuperación y Psicología, reconociendo la convergencia multifactorial como norma.',
+          example:'Caso taekwondo: convergen descontrol emocional (Psicología) y lectura táctica deficiente (Experiencia Competitiva) como causas vitales simultáneas.'},
+        {id:'m5', title:'M5 · Pareto', color:'#C7362F', method:true,
+          pregunta:'¿Qué atacar primero?', input:'Causas del Ishikawa con frecuencias', output:'Ranking priorizado (vitales / secundarias)',
+          summary:'Enfoca el 80% de los recursos en el 20-30% de causas que generan el 70-80% del impacto, mediante el Pareto clásico y una variante ponderada (Impacto × Probabilidad × Factibilidad).',
+          bullets:['Requiere un mínimo de 8-10 casos de fracaso para que las frecuencias sean estadísticamente informativas.']},
+        {id:'m6', title:'M6 · AMFE', color:'#C7362F', method:true,
+          pregunta:'¿Qué podría fallar a futuro?', input:'Causas vitales del Pareto como modos de fallo', output:'Matriz AMFE con IPR priorizado',
+          summary:'Anticipa con 6-12 meses de antelación los modos de fallo mediante el Índice de Prioridad de Riesgo (IPR = Severidad × Ocurrencia × Detección), diseñando contramedidas antes de que la falla ocurra.',
+          example:'Caso taekwondo: descontrol emocional en semifinal alcanza IPR 378, el más alto detectado — riesgo Muy Alto que exige acción preventiva inmediata.'},
+        {id:'m7', title:'M7 · 5 Porqués', color:'#C7362F', method:true,
+          pregunta:'¿Cuál es la causa raíz operable?', input:'Modos de fallo con IPR más alto', output:'Causas raíz accionables',
+          summary:'Convierte las causas generales del Ishikawa/AMFE en causas raíz operativas —decisiones institucionales concretas— mediante cinco preguntas "¿por qué?" sucesivas.',
+          bullets:['El manual documenta que el quinto porqué llega, en la mayoría de los casos, a la ausencia de un protocolo institucional o de formación del personal.']},
+        {id:'m8', title:'M8 · Matrices de Decisión', color:'#C7362F', method:true,
+          pregunta:'¿Cómo intervenir con mayor ROI?', input:'Causas raíz + diagnóstico sistémico + benchmarking', output:'Plan de intervención: Kaizen / Kaikaku / Kakushin',
+          summary:'Selecciona el tipo correcto de intervención mediante matrices que integran impacto, alcance sistémico, comparación con un referente externo (Jalisco) y análisis de riesgo bajo incertidumbre.',
+          bullets:['Incluye gobernanza explícita: quién tiene autoridad para decidir cada tipo de intervención dentro de la institución.']},
+        {id:'m9', title:'M9 · Kaizen-Kaikaku-Kakushin (Ejecución)', color:'#C7362F', method:true,
+          pregunta:'¿Cómo ejecutar el cambio?', input:'Plan del Método 8 + recursos disponibles', output:'Acciones de mejora implementadas',
+          summary:'Ejecuta el plan de intervención de forma secuencial y verificable, distribuyendo las acciones entre los tres niveles de transformación: mejora continua (Kaizen), rediseño radical (Kaikaku) e innovación disruptiva (Kakushin).',
+          example:'Kaizen: reducción del tiempo de reacción en atletismo. Kaikaku: metodología AS-IS → TO-BE. Kakushin: ejemplos de innovación disruptiva en el contexto INDE.'},
+        {id:'m10', title:'M10 · CAPA', color:'#C7362F', method:true,
+          pregunta:'¿Se ejecutó y generó resultados?', input:'Acciones implementadas + métricas de éxito', output:'Registro auditable de implementación y cierre',
+          summary:'Garantiza que cada acción se ejecute conforme a lo planeado, se verifique con indicadores objetivos y se documente como aprendizaje institucional, con responsable único, fecha, semáforo operacional y enfoque no punitivo.',
+          bullets:['Reglas no negociables, semáforo operacional (verde/amarillo/rojo) y plan de auditoría trimestral.']},
+      ]},
+
+    {id:'integracion', title:'14. Integración del Sistema', color:'#1F8A70',
+      summary:'El valor central del SIASPD no está en ningún método aislado, sino en su arquitectura secuencial: cada método produce un output que es exactamente el input del siguiente.',
+      bullets:[
+        'Tabla 14.1 conecta los 10 métodos: pregunta central, input, output y a qué método conecta cada uno.',
+        '6 errores frecuentes de aplicación: saltarse la Desagregación, detener el análisis en el Ishikawa sin priorizar con Pareto, confundir sistémico con generacional, aplicar Kaizen a un problema sistémico, CAPA sin actualización semanal, Kakushin sin diagnóstico previo.',
+        '7 "puertas de decisión" (G0 a G6) que exigen evidencia mínima y una decisión explícita antes de avanzar al siguiente método, evitando que el equipo avance por inercia.',
+      ]},
+
+    {id:'aplicaciones', title:'15. Aplicaciones Prácticas', color:'#C68B1F',
+      summary:'Demuestra que el sistema de 10 métodos no es exclusivo del alto rendimiento: se transfiere a programas comunitarios, poblaciones especiales y contextos clínicos con los mismos pasos.',
+      children:[
+        {id:'ap1', title:'15.1 · Rutina para adultos mayores sedentarios', color:'#C68B1F',
+          summary:'Programa progresivo de 12 semanas (caminata supervisada → programa completo de 150 min/semana), basado en guías ACSM 2021 y evidencia de Sherrington et al. 2019 para prevención de caídas.'},
+        {id:'ap2', title:'15.2 · Caso "Actívate Nuevo León"', color:'#C68B1F',
+          summary:'200 adultos mayores en 5 parques de Monterrey, adherencia real de 38% vs. meta de 65%. Aplicación completa de los 10 métodos identifica como causa raíz que el programa fue diseñado sin evaluación funcional inicial (Senior Fitness Test de Rikli y Jones, 2013).',
+          bullets:['Diagnóstico: sistémico (mismo patrón de abandono en 3 cohortes 2023-2025, semanas 6-8).','Pareto: 3 causas vitales explican el 78% del abandono.','Decisión: Kaikaku — rediseñar el proceso de incorporación con evaluación funcional.']},
+        {id:'ap3', title:'15.3 · Contexto clínico: rehabilitación deportiva', color:'#C68B1F',
+          summary:'El "problema de conversión" se redefine como la tasa de Return To Performance (RTP), que varía entre 40% y 85% según la literatura. El AMFE evalúa preventivamente el riesgo de relesión y el CAPA verifica el protocolo de retorno antes de autorizar la competencia.'},
+        {id:'ap4', title:'15.4 · Adaptación por familia deportiva', color:'#C68B1F',
+          summary:'Matriz que evita trasladar automáticamente los indicadores de natación/atletismo a deportes con lógica distinta: tiempo-distancia-marca, combate, conjunto, apreciación/juzgamiento, precisión, comunitario y clínico/rehabilitación, cada uno con sus propias adaptaciones del SIASPD.'},
+      ]},
+
+    {id:'discusion', title:'16. Discusión', color:'#4C5C68',
+      summary:'Examina con honestidad la coherencia interna del sistema, sus límites reales y las condiciones institucionales, éticas y de formación necesarias para que funcione.',
+      children:[
+        {id:'d1', title:'16.1 · Coherencia interna', color:'#4C5C68',
+          summary:'Tres dimensiones: epistemológica (los métodos 1-3 son descriptivos, 4-7 explicativos, 8-10 prescriptivos, replicando la lógica del razonamiento científico), metodológica (cada output delimita con precisión el siguiente input) y práctica (no requiere software especializado, solo rigor y pensamiento estructurado en equipo).'},
+        {id:'d2', title:'16.2 · Limitaciones del sistema', color:'#4C5C68',
+          summary:'Disponibilidad de datos (Cohortes y Trayectorias necesitan 3-4 ciclos históricos), tamaño muestral mínimo para el Pareto (8-10 casos), factores no controlables (condiciones socioeconómicas, instalaciones municipales) y cultura organizacional (alta rotación directiva reduce el impacto del sistema aunque se implemente técnicamente).'},
+        {id:'d3', title:'16.3 · Formación de entrenadores', color:'#4C5C68',
+          summary:'El entrenador del siglo XXI debe ser experto en su disciplina y, además, competente en pensamiento analítico, lectura de datos y comunicación de evidencia. Propone un programa de formación continua obligatoria (LTAD/FTEM aplicado, interpretación básica de datos, manejo de Pareto/AMFE/5 Porqués/CAPA).'},
+        {id:'d4', title:'16.4 · Ética, datos y salvaguardas del atleta', color:'#4C5C68',
+          summary:'Principios de gobernanza de datos: finalidad y minimización, consentimiento informado, acceso por funciones, uso no punitivo de datos sensibles, revisión humana obligatoria (ningún algoritmo decide solo becas o exclusiones), equidad y derecho de revisión ante decisiones de alto impacto.'},
+      ]},
+
+    {id:'conclusiones', title:'17. Conclusiones', color:'#2F8F5B',
+      summary:'Se presentan en tres niveles: metodológico, institucional y prospectivo, cerrando el argumento central del manual.',
+      bullets:[
+        'Metodológicas: la secuencialidad completa es lo más valioso del sistema; la causación múltiple es la norma, no la excepción; el CAPA es la diferencia real entre el plan y el resultado.',
+        'Institucionales: la eficiencia de la inversión importa más que su magnitud (ejemplo del manual: ~$163,000 MXN bien dirigidos pueden producir 3-4 medallas adicionales); solo Kaikaku y Kakushin producen mejoras sostenibles sin esfuerzo continuo; la formación del cuerpo técnico es la intervención de mayor ROI de largo plazo.',
+        'Prospectivas: meta global INDE — conversión finalista-medallista de 9% a 25-28%, y abandono de 38% a 20-22%, con los recursos existentes correctamente orientados por el diagnóstico.',
+      ]},
+
+    {id:'implementacion', title:'18. Plan de Implementación Escalonada', color:'#A0527A',
+      summary:'Resuelve la brecha entre entender el sistema y ponerlo en marcha: no hace falta implementarlo completo desde el día uno para generar valor.',
+      bullets:[
+        'Fase 0 · Arranque de Emergencia (semanas 1-4): M1 + M5 básico + M10 — mapa de quiebres y CAPA con al menos 3 acciones activas.',
+        'Fase 1 · Diagnóstico Completo (semanas 5-12): M2 a M5 ponderado — diagnóstico sistémico/generacional documentado y causas vitales priorizadas.',
+        'Fase 2 · Preparación Competitiva (semanas 13-28): M6 a M9 Kaikaku — matriz AMFE completa y plan de intervención aprobado.',
+        'Fase 3 · Evento Competitivo y Auditoría (semanas 29-32): M9 Kaizen en sede + cierre de M10 — informe de resultados vs. proyección.',
+        'Fase 4 · Aprendizaje y Ciclo Siguiente (semanas 33-52): nueva Desagregación + CAPA institucional — lecciones aprendidas y arranque de Kakushin piloto.',
+        'También detalla qué métodos pueden operar con datos mínimos, y un plan de formación escalonada del cuerpo técnico.',
+      ]},
+
+    {id:'critico', title:'19. Análisis Crítico del Sistema', color:'#B4530A',
+      summary:'Evaluación honesta de fortalezas y límites del SIASPD, contrastada con evidencia complementaria de la literatura científica, cerrando con una síntesis evaluativa y recomendación de implementación.',
+      bullets:[
+        'Fortalezas: corrige que entre 55% y 70% de las intervenciones deportivas se diseñan sin diagnóstico formal de causa raíz; intervenciones calibradas (evita sub- y sobre-intervención); trazabilidad verificable vía CAPA; transferibilidad interdisciplinaria.',
+        'Limitaciones: complejidad operativa y requisito de formación; dependencia de datos longitudinales fiables; resistencia al cambio institucional (Kotter, 1996: 70% de los fracasos de cambio organizacional se deben a subestimar la resistencia cultural); horizonte temporal largo para el impacto completo (caso Australia: 17 años).',
+        'Evidencia complementaria: formalización del proceso diagnóstico, efecto de la edad relativa y maduración biológica, diversificación de experiencias y longevidad competitiva, estrategias de entrenamiento avanzado, factores no deportivos asociados al éxito competitivo.',
+        'Síntesis evaluativa: el propio manual concluye que el SIASPD es la metodología más comprensiva y accesible disponible para el contexto del INDE Nuevo León, y recomienda implementación inmediata e integrada.',
+      ]},
+
+    {id:'recomendaciones', title:'20–21. Recomendaciones Estratégicas 2027', color:'#C79A3B',
+      summary:'Traduce todo el marco metodológico en un plan concreto hacia la Olimpiada Nacional CONADE 2027, con fases, gobernanza, presupuesto y metas medibles.',
+      children:[
+        {id:'r-fases', title:'Fases 0–3 (Kaizen → Kaikaku → Kakushin)', color:'#C79A3B',
+          summary:'Fase 0 Diagnóstico Urgente (0-3 meses): mapear antes de intervenir. Fase 1 Preparación Kaizen (4-12 meses): optimizar el sistema existente. Fase 2 Rediseño Kaikaku (4-18 meses): reestructurar lo que no funciona. Fase 3 Transformación Kakushin (12-36 meses): innovar el paradigma.'},
+        {id:'r-kpis', title:'Sistema de medición continua: KPIs 2027', color:'#C79A3B',
+          summary:'Indicadores de seguimiento continuo del ciclo, más un programa de capacitación y cultura de datos para sostener las decisiones basadas en evidencia.'},
+        {id:'r-hojaruta', title:'21.1 · Hoja de ruta 2026–2027', color:'#C79A3B',
+          summary:'Cuatro fases hacia la medalla: Diagnóstico (baseline 9%), Kaizen (9%→16-20%), Kaikaku (20%→28%), Olimpiada Nacional (≥28%, ≥3 medallas por deporte prioritario), y Aprendizaje (sostener ≥28%).'},
+        {id:'r-gob', title:'21.2 · Estructura de gobernanza', color:'#C79A3B',
+          summary:'Comité de Alto Rendimiento (mensual, autoriza Kaikaku), Mesa Técnica Operativa (semanal, actualiza CAPA), Equipo de Seguimiento en Evento (diario en competencia) y Auditoría Anual (autoriza Kakushin).'},
+        {id:'r-presup', title:'21.3 · Marco presupuestal', color:'#C79A3B',
+          summary:'Inversión anual mínima recomendada de $417,000 MXN, con impacto proyectado de +25 puntos porcentuales de conversión (3-4 medallas adicionales) y costo estimado de ~$104,250 MXN por medalla adicional.'},
+        {id:'r-metas', title:'21.4 · Metas globales INDE 2027', color:'#C79A3B',
+          summary:'Conversión finalista-medallista ≥28%, avance del 14° al Top 8 del medallero estatal, 100% de decisiones de recursos documentadas, retención de atletas ≥80%, y SIASPD institucionalizado como protocolo permanente.'},
+      ]},
+
+    {id:'anexos', title:'Suplemento Técnico y Anexos', color:'#6C7A89',
+      summary:'Material técnico complementario para la validación, estandarización de datos e implementación operativa del sistema, sin sustituir los capítulos originales.',
+      children:[
+        {id:'ax-a', title:'Anexo A · Matriz de trazabilidad de evidencia', color:'#6C7A89', summary:'Separa, para cada uno de los 10 métodos y para la cadena completa, el respaldo científico disponible de la validación institucional local aún pendiente.'},
+        {id:'ax-b', title:'Anexo B · Diccionario mínimo de datos', color:'#6C7A89', summary:'Estandariza los campos de datos que debe registrar cada entrenador/deporte/ciclo, con responsable, fuente y regla de calidad, para reducir inconsistencias entre cohortes.'},
+        {id:'ax-d', title:'Anexo D · Protocolo de validación piloto', color:'#6C7A89', summary:'Indicadores mínimos para pilotear el sistema antes de una implementación institucional completa.'},
+        {id:'ax-e', title:'Anexo E · Gobernanza del IPM', color:'#6C7A89', summary:'Reglas de gobernanza del Índice de Probabilidad de Medalla: quién puede activarlo, calibrarlo y usarlo en decisiones de alto impacto.'},
+        {id:'ax-f', title:'Anexo F · Protocolo estadístico y de reporte', color:'#6C7A89', summary:'Formato recomendado para reportar resultados de forma consistente entre deportes y ciclos.'},
+        {id:'ax-g', title:'Anexo G · Plantillas editables', color:'#6C7A89', summary:'Ficha de definición del problema, matriz de evidencia causal, Pareto normalizado, AMFE con prioridad de acción, y CAPA con eficacia — listas para usarse directamente.'},
+        {id:'ax-h', title:'Anexo H · Glosario y normalización editorial', color:'#6C7A89', summary:'Definiciones estandarizadas de todos los términos técnicos del sistema (IPR, IPM, semáforo, cuello de botella, causa raíz operativa, etc.).'},
+      ]},
+  ]
+};
+
+/* ============================================================
+   ESTADO Y RENDERIZADO
+   ============================================================ */
+const expanded = new Set(['root']); // root siempre expandido
+let selectedId = null;
+let searchTerm = '';
+
+function nodeById(id, node){
+  node = node || TREE;
+  if(node.id === id) return node;
+  if(node.children){
+    for(const c of node.children){
+      const r = nodeById(id, c);
+      if(r) return r;
+    }
+  }
+  return null;
+}
+function parentOf(id, node, parent){
+  node = node || TREE;
+  if(node.id === id) return parent;
+  if(node.children){
+    for(const c of node.children){
+      const r = parentOf(id, c, node);
+      if(r !== undefined) return r;
+    }
+  }
+  return undefined;
+}
+function matchesSearch(node){
+  if(!searchTerm) return true;
+  const t = searchTerm.toLowerCase();
+  const hay = (node.title + ' ' + (node.summary||'') + ' ' + (node.bullets||[]).join(' ')).toLowerCase();
+  if(hay.includes(t)) return true;
+  if(node.children) return node.children.some(matchesSearch);
+  return false;
+}
+
+function renderCard(node, level, parentId){
+  const isRoot = !!node.root;
+  const hasChildren = !!(node.children && node.children.length);
+  const isExpanded = expanded.has(node.id);
+  const card = document.createElement('div');
+  card.className = 'node-card' + (isRoot ? ' root' : '') + (level===1 ? ' level1' : '') + (isExpanded && hasChildren ? ' expanded' : '');
+  card.dataset.id = node.id;
+  if(parentId) card.dataset.parent = parentId;
+  if(node.color) card.dataset.color = node.color;
+  if(selectedId === node.id) card.classList.add('selected');
+  if(searchTerm && !matchesSearch(node)) card.classList.add('dimmed');
+
+  let inner = '';
+  if(hasChildren) inner += `<span class="chev">▶</span>`;
+  else if(!isRoot) inner += `<span class="dot" style="background:${node.color||'#8FAADC'}"></span>`;
+  if(node.method){
+    inner += `<span class="num" style="background:${node.color}">${node.id.replace('m','')}</span>`;
+  }
+  inner += `<span class="ttl">${node.title}</span>`;
+  card.innerHTML = inner;
+
+  card.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    selectedId = node.id;
+    if(hasChildren){
+      if(expanded.has(node.id)) expanded.delete(node.id); else expanded.add(node.id);
+    }
+    renderAll();
+    showPanel(node);
+  });
+  return card;
+}
+
+function renderBranch(node, level, parentId){
+  const wrap = document.createElement('div');
+  wrap.className = 'branch';
+  const card = renderCard(node, level, parentId);
+  wrap.appendChild(card);
+  if(node.children && node.children.length && expanded.has(node.id)){
+    const col = document.createElement('div');
+    col.className = 'children-col';
+    node.children.forEach(child=>{
+      col.appendChild(renderBranch(child, level+1, node.id));
+    });
+    wrap.appendChild(col);
+  }
+  return wrap;
+}
+
+function renderAll(){
+  const rootRow = document.getElementById('treeRoot');
+  rootRow.innerHTML = '';
+  const rootCard = renderCard(TREE, 0, null);
+  rootRow.appendChild(rootCard);
+  const branchesCol = document.createElement('div');
+  branchesCol.className = 'branches-col';
+  TREE.children.forEach(child=>{
+    branchesCol.appendChild(renderBranch(child, 1, TREE.id));
+  });
+  rootRow.appendChild(branchesCol);
+  requestAnimationFrame(drawConnectors);
+}
+
+/* ============================================================
+   CONECTORES (SVG dibujado según posiciones reales)
+   ============================================================ */
+function drawConnectors(){
+  const inner = document.getElementById('mmInner');
+  const svg = document.getElementById('connectors');
+  const innerRect = inner.getBoundingClientRect();
+  svg.setAttribute('width', inner.scrollWidth);
+  svg.setAttribute('height', inner.scrollHeight);
+  svg.style.width = inner.scrollWidth + 'px';
+  svg.style.height = inner.scrollHeight + 'px';
+
+  let html = '';
+  document.querySelectorAll('.node-card[data-parent]').forEach(el=>{
+    const parentEl = document.querySelector(`.node-card[data-id="${CSS.escape(el.dataset.parent)}"]`);
+    if(!parentEl) return;
+    const r1 = parentEl.getBoundingClientRect();
+    const r2 = el.getBoundingClientRect();
+    const x1 = r1.right - innerRect.left, y1 = r1.top + r1.height/2 - innerRect.top;
+    const x2 = r2.left - innerRect.left, y2 = r2.top + r2.height/2 - innerRect.top;
+    const midx = (x1+x2)/2;
+    const color = el.dataset.color || '#8FAADC';
+    const dimmed = el.classList.contains('dimmed') ? 0.15 : 0.55;
+    html += `<path d="M ${x1} ${y1} C ${midx} ${y1}, ${midx} ${y2}, ${x2} ${y2}" fill="none" stroke="${color}" stroke-width="2" opacity="${dimmed}"/>`;
+  });
+  svg.innerHTML = html;
+}
+
+/* ============================================================
+   PANEL DE DETALLE
+   ============================================================ */
+function breadcrumb(id){
+  const parts = [];
+  let cur = nodeById(id);
+  while(cur){
+    parts.unshift(cur.title);
+    const p = parentOf(cur.id);
+    cur = p || null;
+  }
+  return parts.join(' › ');
+}
+function showPanel(node){
+  const panel = document.getElementById('panel');
+  let html = `<div class="crumb">${breadcrumb(node.id)}</div>`;
+  html += `<h2>${node.title}</h2>`;
+  if(node.method){
+    html += `<div class="metabox">
+      <div class="m"><div class="k">Pregunta central</div><div class="v">${node.pregunta}</div></div>
+      <div class="m"><div class="k">Input</div><div class="v">${node.input}</div></div>
+      <div class="m"><div class="k">Output</div><div class="v">${node.output}</div></div>
+    </div>`;
+  }
+  if(node.summary) html += `<p class="summary">${node.summary}</p>`;
+  if(node.bullets && node.bullets.length){
+    html += `<ul class="bullets">` + node.bullets.map(b=>`<li>${b}</li>`).join('') + `</ul>`;
+  }
+  if(node.example){
+    html += `<div class="example"><b>Ejemplo del manual:</b> ${node.example}</div>`;
+  }
+  if(node.children && node.children.length){
+    html += `<div class="children-list"><h4>Contenido de esta sección</h4>`;
+    node.children.forEach(c=>{
+      html += `<div class="child-chip" data-id="${c.id}">${c.title}</div>`;
+    });
+    html += `</div>`;
+  }
+  panel.innerHTML = html;
+  panel.querySelectorAll('.child-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const n = nodeById(chip.dataset.id);
+      expanded.add(node.id);
+      expanded.add(n.id);
+      selectedId = n.id;
+      renderAll();
+      showPanel(n);
+      const el = document.querySelector(`.node-card[data-id="${CSS.escape(n.id)}"]`);
+      if(el) el.scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
+    });
+  });
+}
+
+/* ============================================================
+   CONTROLES
+   ============================================================ */
+function expandAllRec(node){
+  if(node.children){
+    expanded.add(node.id);
+    node.children.forEach(expandAllRec);
+  }
+}
+document.getElementById('expandAllBtn').addEventListener('click', ()=>{
+  expandAllRec(TREE);
+  renderAll();
+});
+document.getElementById('collapseAllBtn').addEventListener('click', ()=>{
+  expanded.clear();
+  expanded.add('root');
+  renderAll();
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  expanded.clear();
+  expanded.add('root');
+  selectedId = null;
+  searchTerm = '';
+  document.getElementById('searchBox').value = '';
+  renderAll();
+  document.getElementById('panel').innerHTML = '<div class="ph-empty">Haga clic en cualquier nodo del mapa para ver su contenido aquí.<br><br>Use "Expandir todo" para ver la estructura completa, o navegue rama por rama.</div>';
+  document.getElementById('mindmap').scrollTo(0,0);
+});
+let searchDebounce;
+document.getElementById('searchBox').addEventListener('input', (e)=>{
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(()=>{
+    searchTerm = e.target.value.trim();
+    if(searchTerm){
+      // auto-expandir ramas que contienen coincidencias
+      function autoExpand(node){
+        if(node.children){
+          if(matchesSearch(node)) expanded.add(node.id);
+          node.children.forEach(autoExpand);
+        }
+      }
+      autoExpand(TREE);
+    }
+    renderAll();
+  }, 200);
+});
+window.addEventListener('resize', ()=>requestAnimationFrame(drawConnectors));
+document.getElementById('mindmap').addEventListener('scroll', ()=>{}, {passive:true});
+
+renderAll();
+})();
+</script>
+</body>
+</html>
